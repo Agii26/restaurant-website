@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ dish.name }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Georgia', serif; background: #fafaf8; color: #2c2c2c; }
+
+    .back { display: inline-block; margin: 1.5rem; font-size: 0.9rem; color: #888; text-decoration: none; }
+    .back:hover { color: #2c2c2c; }
+
+    .dish-card {
+      max-width: 700px; margin: 0 auto; padding: 0 1.5rem 4rem;
+    }
+
+    .dish-image {
+      width: 100%; max-height: 380px; object-fit: cover;
+      border-radius: 10px; margin-bottom: 2rem;
+    }
+
+    .dish-name { font-size: 2rem; font-weight: normal; margin-bottom: 0.5rem; }
+    .dish-price { font-size: 1.4rem; color: #555; margin-bottom: 1rem; }
+    .dish-desc { font-size: 1rem; color: #666; line-height: 1.7; margin-bottom: 1.5rem; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.5rem; }
+    .tag { font-size: 0.8rem; padding: 0.2rem 0.6rem; border-radius: 12px; background: #f0f0e8; color: #555; }
+
+    .addons-section h3 {
+      font-size: 1rem; font-weight: normal; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #888; margin-bottom: 1rem;
+      border-bottom: 1px solid #e8e8e0; padding-bottom: 0.5rem;
+    }
+
+    .addon {
+      display: flex; justify-content: space-between;
+      padding: 0.6rem 0; border-bottom: 1px dotted #e8e8e0;
+      font-size: 0.95rem;
+    }
+    .addon:last-child { border-bottom: none; }
+    .addon-price { color: #777; }
+
+    .unavailable-badge {
+      display: inline-block; background: #f5e6e6; color: #c0392b;
+      padding: 0.3rem 0.8rem; border-radius: 12px; font-size: 0.85rem; margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<a href="{% url 'menu:menu' %}" class="back">← Back to Menu</a>
+
+<div class="dish-card">
+  {% if dish.image %}
+    <img src="{{ dish.image.url }}" alt="{{ dish.name }}" class="dish-image" />
+  {% endif %}
+
+  <h1 class="dish-name">{{ dish.name }}</h1>
+
+  {% if not dish.is_available %}
+    <span class="unavailable-badge">Currently Unavailable</span>
+  {% endif %}
+
+  <div class="dish-price">${{ dish.price }}</div>
+
+  {% if dish.description %}
+    <p class="dish-desc">{{ dish.description }}</p>
+  {% endif %}
+
+  {% if dish.tags.all %}
+    <div class="tags">
+      {% for tag in dish.tags.all %}
+        <span class="tag">{{ tag }}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if dish.addons.all %}
+    <div class="addons-section">
+      <h3>Available Add-ons</h3>
+      {% for addon in dish.addons.all %}
+        <div class="addon">
+          <span>{{ addon.name }}</span>
+          <span class="addon-price">+${{ addon.additional_price }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+</body>
+</html>

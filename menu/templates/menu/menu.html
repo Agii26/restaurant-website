@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Menu</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Georgia', serif; background: #fafaf8; color: #2c2c2c; }
+
+    header { text-align: center; padding: 3rem 1rem 1.5rem; border-bottom: 1px solid #e0e0d8; }
+    header h1 { font-size: 2.4rem; letter-spacing: 0.05em; font-weight: normal; }
+    header p { margin-top: 0.5rem; color: #777; font-size: 1rem; }
+
+    nav {
+      display: flex; justify-content: center; flex-wrap: wrap;
+      gap: 0.5rem; padding: 1.2rem 1rem; background: #fff;
+      border-bottom: 1px solid #e0e0d8; position: sticky; top: 0; z-index: 10;
+    }
+    nav a {
+      text-decoration: none; color: #555; font-size: 0.85rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.4rem 0.9rem; border: 1px solid #ddd; border-radius: 20px; transition: all 0.2s;
+    }
+    nav a:hover { background: #2c2c2c; color: #fff; border-color: #2c2c2c; }
+
+    main { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    .category { margin-bottom: 3.5rem; }
+    .category-title {
+      font-size: 1.3rem; font-weight: normal; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #888; margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem; border-bottom: 1px solid #e8e8e0;
+    }
+
+    .item {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 1.1rem 0; border-bottom: 1px dotted #e8e8e0;
+      text-decoration: none; color: inherit;
+    }
+    .item:last-child { border-bottom: none; }
+    .item:hover .item-name { text-decoration: underline; }
+
+    .item-image { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+    .item-info { flex: 1; }
+    .item-name { font-size: 1.05rem; margin-bottom: 0.25rem; }
+    .item-desc { font-size: 0.9rem; color: #777; line-height: 1.5; margin-bottom: 0.4rem; }
+    .item-price { font-size: 1rem; color: #2c2c2c; white-space: nowrap; padding-top: 0.1rem; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem; }
+    .tag {
+      font-size: 0.75rem; padding: 0.15rem 0.5rem;
+      border-radius: 12px; background: #f0f0e8; color: #555;
+    }
+
+    .addons { font-size: 0.8rem; color: #999; margin-top: 0.3rem; }
+    .empty { text-align: center; color: #aaa; padding: 4rem 0; font-size: 1rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Our Menu</h1>
+  <p>Fresh ingredients, made with care</p>
+</header>
+
+{% if categories %}
+<nav>
+  {% for category in categories %}
+    <a href="#{{ category.slug }}">{{ category.name }}</a>
+  {% endfor %}
+</nav>
+{% endif %}
+
+<main>
+  {% if categories %}
+    {% for category in categories %}
+      <section class="category" id="{{ category.slug }}">
+        <h2 class="category-title">{{ category.name }}</h2>
+        {% if category.description %}<p style="color:#999;margin-bottom:1rem;font-size:0.9rem;">{{ category.description }}</p>{% endif %}
+
+        {% for item in category.items.all %}
+          {% if item.is_available %}
+            <a href="{% url 'menu:dish_detail' item.slug %}" class="item">
+              {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="item-image" />
+              {% endif %}
+              <div class="item-info">
+                <div class="item-name">
+                  {{ item.name }}
+                  {% if item.is_featured %}<span class="tag">⭐ Featured</span>{% endif %}
+                </div>
+                {% if item.description %}
+                  <div class="item-desc">{{ item.description|truncatewords:20 }}</div>
+                {% endif %}
+                {% if item.tags.all %}
+                  <div class="tags">
+                    {% for tag in item.tags.all %}
+                      <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+                {% if item.addons.all %}
+                  <div class="addons">Add-ons available</div>
+                {% endif %}
+              </div>
+              <div class="item-price">${{ item.price }}</div>
+            </a>
+          {% endif %}
+        {% endfor %}
+      </section>
+    {% endfor %}
+  {% else %}
+    <p class="empty">Menu coming soon.</p>
+  {% endif %}
+</main>
+
+</body>
+</html>
