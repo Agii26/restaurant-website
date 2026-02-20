@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reservation Confirmed</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Georgia', serif; background: #fafaf8; color: #2c2c2c; }
+
+    .container { max-width: 560px; margin: 5rem auto; padding: 0 1.5rem; text-align: center; }
+
+    .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+    h1 { font-size: 2rem; font-weight: normal; margin-bottom: 0.5rem; }
+    .subtitle { color: #777; margin-bottom: 2.5rem; font-size: 1rem; }
+
+    .card {
+      background: #fff; border: 1px solid #e0e0d8;
+      border-radius: 10px; padding: 2rem; text-align: left;
+      margin-bottom: 2rem;
+    }
+
+    .card-row {
+      display: flex; justify-content: space-between;
+      padding: 0.65rem 0; border-bottom: 1px dotted #e8e8e0;
+      font-size: 0.95rem;
+    }
+    .card-row:last-child { border-bottom: none; }
+    .card-label { color: #888; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .status-confirmed {
+      display: inline-block; background: #e8f5e9; color: #2e7d32;
+      padding: 0.2rem 0.7rem; border-radius: 12px; font-size: 0.85rem;
+    }
+    .status-pending {
+      display: inline-block; background: #fef9ec; color: #7a6020;
+      padding: 0.2rem 0.7rem; border-radius: 12px; font-size: 0.85rem;
+    }
+
+    .notice {
+      background: #fef9ec; border: 1px solid #f0e0a0;
+      border-radius: 8px; padding: 1rem 1.2rem;
+      font-size: 0.9rem; color: #7a6020; margin-bottom: 2rem; text-align: left;
+    }
+
+    .btn {
+      display: inline-block; padding: 0.8rem 2rem;
+      background: #2c2c2c; color: #fff; text-decoration: none;
+      border-radius: 6px; font-size: 0.95rem; letter-spacing: 0.04em;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #444; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="icon">🍽️</div>
+  <h1>
+    {% if reservation.status == 'confirmed' %}
+      You're all set!
+    {% else %}
+      Request received!
+    {% endif %}
+  </h1>
+  <p class="subtitle">
+    {% if reservation.status == 'confirmed' %}
+      Your table has been reserved. See you soon!
+    {% else %}
+      Your reservation is pending approval. We'll contact you within 24 hours.
+    {% endif %}
+  </p>
+
+  <div class="card">
+    <div class="card-row">
+      <span class="card-label">Name</span>
+      <span>{{ reservation.name }}</span>
+    </div>
+    <div class="card-row">
+      <span class="card-label">Date</span>
+      <span>{{ reservation.date|date:"F j, Y" }}</span>
+    </div>
+    <div class="card-row">
+      <span class="card-label">Time</span>
+      <span>{{ reservation.time|time:"g:i A" }}</span>
+    </div>
+    <div class="card-row">
+      <span class="card-label">Guests</span>
+      <span>{{ reservation.number_of_guests }}</span>
+    </div>
+    <div class="card-row">
+      <span class="card-label">Status</span>
+      <span>
+        {% if reservation.status == 'confirmed' %}
+          <span class="status-confirmed">✓ Confirmed</span>
+        {% else %}
+          <span class="status-pending">⏳ Pending Approval</span>
+        {% endif %}
+      </span>
+    </div>
+    {% if reservation.special_request %}
+    <div class="card-row">
+      <span class="card-label">Special Request</span>
+      <span>{{ reservation.special_request }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if reservation.status == 'pending' %}
+  <div class="notice">
+    Large group reservations (5+ guests) require manual confirmation. We'll reach out to <strong>{{ reservation.email }}</strong> or call <strong>{{ reservation.phone }}</strong>.
+  </div>
+  {% endif %}
+
+  <a href="/" class="btn">Back to Home</a>
+</div>
+
+</body>
+</html>

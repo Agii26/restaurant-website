@@ -22,4 +22,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", home, name="home"),
     path("menu/", include("menu.urls")),
+    path('reservations/', include('reservations.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
