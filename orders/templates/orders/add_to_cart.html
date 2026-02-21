@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add to Cart</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Georgia', serif; background: #fafaf8; color: #2c2c2c; }
+    .container { max-width: 480px; margin: 4rem auto; padding: 0 1.5rem; }
+    .back { display: inline-block; margin-bottom: 1.5rem; font-size: 0.9rem; color: #888; text-decoration: none; }
+    h1 { font-size: 1.8rem; font-weight: normal; margin-bottom: 0.3rem; }
+    .price { font-size: 1.1rem; color: #777; margin-bottom: 2rem; }
+    .form-group { margin-bottom: 1.3rem; }
+    label { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 0.4rem; }
+    select, input[type="number"] { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 0.95rem; }
+    button { width: 100%; padding: 0.9rem; background: #2c2c2c; color: #fff; border: none; border-radius: 6px; font-family: inherit; font-size: 1rem; cursor: pointer; }
+    button:hover { background: #444; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <a href="{% url 'menu:dish_detail' item.slug %}" class="back">← Back to {{ item.name }}</a>
+  <h1>{{ item.name }}</h1>
+  <p class="price">From ${{ item.price }}</p>
+
+  <form method="POST">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-group">
+        <label>{{ field.label }}</label>
+        {{ field }}
+      </div>
+    {% endfor %}
+    <button type="submit">Add to Cart</button>
+  </form>
+</div>
+</body>
+</html>

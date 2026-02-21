@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order History</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Georgia', serif; background: #fafaf8; color: #2c2c2c; }
+    header { text-align: center; padding: 3rem 1rem 1.5rem; border-bottom: 1px solid #e0e0d8; }
+    header h1 { font-size: 2.2rem; font-weight: normal; }
+    .container { max-width: 700px; margin: 2.5rem auto; padding: 0 1.5rem 4rem; }
+    .back { display: inline-block; margin-bottom: 1.5rem; font-size: 0.9rem; color: #888; text-decoration: none; }
+    .order-card { background: #fff; border: 1px solid #e0e0d8; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid #e8e8e0; }
+    .order-num { font-size: 0.85rem; color: #888; }
+    .order-date { font-size: 0.85rem; color: #aaa; }
+    .status { font-size: 0.8rem; padding: 0.2rem 0.7rem; border-radius: 12px; }
+    .status-pending { background: #fef9ec; color: #7a6020; }
+    .status-confirmed { background: #e8f5e9; color: #2e7d32; }
+    .status-preparing { background: #e3f2fd; color: #1565c0; }
+    .status-ready { background: #f3e5f5; color: #6a1b9a; }
+    .status-completed { background: #e8f5e9; color: #2e7d32; }
+    .status-cancelled { background: #fdecea; color: #c0392b; }
+    .order-item { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.3rem 0; color: #555; }
+    .order-total { display: flex; justify-content: space-between; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid #e8e8e0; font-size: 1rem; }
+    .empty { text-align: center; color: #aaa; padding: 4rem 0; }
+  </style>
+</head>
+<body>
+<header><h1>Your Orders</h1></header>
+<div class="container">
+  <a href="{% url 'menu:menu' %}" class="back">← Back to Menu</a>
+
+  {% if orders %}
+    {% for order in orders %}
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <div class="order-num">Order #{{ order.order_number|stringformat:"s"|slice:":8"|upper }}</div>
+            <div class="order-date">{{ order.created_at|date:"F j, Y — g:i A" }}</div>
+          </div>
+          <span class="status status-{{ order.status }}">{{ order.get_status_display }}</span>
+        </div>
+        {% for item in order.items.all %}
+          <div class="order-item"><span>{{ item.quantity }}× {{ item.name }}</span><span>${{ item.item_total }}</span></div>
+        {% endfor %}
+        <div class="order-total"><strong>Total</strong><strong>${{ order.total }}</strong></div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="empty">No orders yet. <a href="{% url 'menu:menu' %}">Start ordering!</a></p>
+  {% endif %}
+</div>
+</body>
+</html>

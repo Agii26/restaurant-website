@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Warm Vibe Bistro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --burnt: #c8572a;
+      --burnt-dark: #a03d18;
+      --charcoal: #1a1816;
+      --sand: #e8dcc8;
+      --sand-light: #f5f0e8;
+      --warm-white: #fdfaf5;
+      --mid: #7a6f62;
+      --light: #b8a898;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--warm-white);
+      color: var(--charcoal);
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.4rem 3rem;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+    nav.scrolled {
+      background: var(--charcoal);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--warm-white);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      align-items: center;
+    }
+    .nav-links a {
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--sand); }
+    .nav-cta {
+      background: var(--burnt) !important;
+      color: white !important;
+      padding: 0.5rem 1.2rem !important;
+      letter-spacing: 0.14em !important;
+    }
+    .nav-cta:hover { background: var(--burnt-dark) !important; }
+    @media (max-width: 640px) {
+      nav { padding: 1.2rem 1.5rem; }
+      .nav-links { gap: 1.2rem; }
+      .nav-links a:not(.nav-cta) { display: none; }
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      background: var(--charcoal);
+    }
+
+    /* Animated warm gradient background */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 50%, rgba(200,87,42,0.25) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 20% 80%, rgba(200,87,42,0.15) 0%, transparent 50%),
+        linear-gradient(135deg, #1a1816 0%, #2a1f14 50%, #1a1816 100%);
+      animation: heatPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes heatPulse {
+      0%   { opacity: 0.8; }
+      100% { opacity: 1; }
+    }
+
+    /* Grain overlay */
+    .hero-grain {
+      position: absolute;
+      inset: 0;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 3rem;
+      max-width: 900px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--burnt);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.3s;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 30px;
+      height: 1px;
+      background: var(--burnt);
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.5rem, 9vw, 8rem);
+      font-weight: 900;
+      color: var(--warm-white);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.5s;
+    }
+    .hero-title em {
+      font-style: italic;
+      color: var(--burnt);
+      font-weight: 400;
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.7;
+      max-width: 480px;
+      margin-bottom: 2.5rem;
+      font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.7s;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 0.9s;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      padding: 1rem 2.2rem;
+      background: var(--burnt);
+      color: white;
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.25s;
+    }
+    .btn-primary:hover {
+      background: var(--burnt-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-ghost {
+      display: inline-block;
+      padding: 1rem 2.2rem;
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: all 0.25s;
+    }
+    .btn-ghost:hover {
+      border-color: rgba(255,255,255,0.6);
+      color: white;
+    }
+
+    /* Floating hours badge */
+    .hero-badge {
+      position: absolute;
+      bottom: 3rem;
+      right: 3rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      padding: 1.2rem 1.6rem;
+      text-align: right;
+      opacity: 0;
+      animation: fadeUp 0.9s ease forwards 1.1s;
+    }
+    .badge-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--burnt);
+      margin-bottom: 0.4rem;
+    }
+    .badge-hours {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--warm-white);
+      font-style: italic;
+    }
+    @media (max-width: 640px) {
+      .hero-badge { display: none; }
+      .hero-content { padding: 0 1.5rem; }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── TICKER STRIP ── */
+    .ticker {
+      background: var(--burnt);
+      overflow: hidden;
+      padding: 0.75rem 0;
+      white-space: nowrap;
+    }
+    .ticker-inner {
+      display: inline-flex;
+      gap: 0;
+      animation: ticker 20s linear infinite;
+    }
+    .ticker-item {
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.9);
+      padding: 0 3rem;
+    }
+    .ticker-dot {
+      color: rgba(255,255,255,0.4);
+      padding: 0;
+    }
+    @keyframes ticker {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ── ABOUT ── */
+    .about {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 70vh;
+    }
+    @media (max-width: 760px) {
+      .about { grid-template-columns: 1fr; }
+    }
+
+    .about-visual {
+      background: var(--charcoal);
+      position: relative;
+      overflow: hidden;
+      min-height: 400px;
+    }
+    .about-visual-inner {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 100% 100% at 30% 70%, rgba(200,87,42,0.3) 0%, transparent 60%),
+        var(--charcoal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .about-monogram {
+      font-family: 'Playfair Display', serif;
+      font-size: 14rem;
+      font-weight: 900;
+      color: rgba(255,255,255,0.03);
+      line-height: 1;
+      user-select: none;
+    }
+    .about-year {
+      position: absolute;
+      bottom: 2rem;
+      left: 2rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--burnt);
+    }
+
+    .about-text {
+      background: var(--sand-light);
+      padding: 5rem 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    @media (max-width: 900px) {
+      .about-text { padding: 3rem 2rem; }
+    }
+
+    .section-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--burnt);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .section-tag::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--burnt);
+      opacity: 0.3;
+      max-width: 40px;
+    }
+
+    .about-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--charcoal);
+      margin-bottom: 1.5rem;
+    }
+    .about-heading em { font-style: italic; color: var(--burnt); }
+
+    .about-body {
+      font-size: 0.95rem;
+      color: var(--mid);
+      line-height: 1.85;
+      margin-bottom: 2rem;
+    }
+
+    .about-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--sand);
+    }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--burnt);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-top: 0.3rem;
+    }
+
+    /* ── FEATURED DISHES ── */
+    .featured {
+      padding: 6rem 3rem;
+      background: var(--charcoal);
+      @media (max-width: 640px) { padding: 4rem 1.5rem; }
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 3rem;
+    }
+    @media (max-width: 600px) {
+      .section-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+
+    .section-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      color: var(--warm-white);
+      line-height: 1.1;
+    }
+    .section-heading em { font-style: italic; color: var(--burnt); }
+
+    .see-all {
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--burnt);
+      text-decoration: none;
+      border-bottom: 1px solid var(--burnt);
+      padding-bottom: 0.1rem;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .see-all:hover { opacity: 0.7; }
+
+    .dishes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) { .dishes-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .dishes-grid { grid-template-columns: 1fr; } }
+
+    .dish-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s;
+      text-decoration: none;
+      display: block;
+    }
+    .dish-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(200,87,42,0.4);
+    }
+
+    .dish-img-wrap {
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      background: rgba(255,255,255,0.03);
+      position: relative;
+    }
+    .dish-img-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s;
+    }
+    .dish-card:hover .dish-img-wrap img { transform: scale(1.06); }
+
+    .dish-placeholder {
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.15);
+    }
+
+    .dish-info { padding: 1.2rem 1.4rem 1.4rem; }
+    .dish-category {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--burnt);
+      margin-bottom: 0.4rem;
+    }
+    .dish-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--warm-white);
+      margin-bottom: 0.4rem;
+      font-weight: 400;
+    }
+    .dish-desc {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.6;
+      margin-bottom: 0.8rem;
+    }
+    .dish-price {
+      font-size: 1rem;
+      color: var(--sand);
+      font-family: 'Playfair Display', serif;
+    }
+
+    .no-dishes-note {
+      color: rgba(255,255,255,0.3);
+      font-style: italic;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      text-align: center;
+      padding: 3rem 0;
+      grid-column: 1/-1;
+    }
+
+    /* ── HOURS & LOCATION ── */
+    .info-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--sand-light);
+    }
+    @media (max-width: 640px) { .info-section { grid-template-columns: 1fr; } }
+
+    .info-block {
+      padding: 5rem 4rem;
+      border-right: 1px solid var(--sand);
+    }
+    .info-block:last-child { border-right: none; }
+    @media (max-width: 900px) { .info-block { padding: 3rem 2rem; } }
+
+    .info-block .section-tag { margin-bottom: 2rem; }
+
+    .hours-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid var(--sand);
+      font-size: 0.9rem;
+    }
+    .hours-row:last-child { border-bottom: none; }
+    .hours-day { color: var(--charcoal); font-weight: 400; }
+    .hours-time { color: var(--mid); font-size: 0.85rem; }
+    .hours-closed { color: var(--light); font-style: italic; }
+
+    .location-address {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-style: italic;
+      color: var(--charcoal);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+    .location-detail {
+      font-size: 0.82rem;
+      color: var(--mid);
+      line-height: 1.8;
+      margin-bottom: 2rem;
+    }
+    .btn-directions {
+      display: inline-block;
+      padding: 0.8rem 1.8rem;
+      background: var(--charcoal);
+      color: var(--warm-white);
+      text-decoration: none;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: background 0.2s;
+    }
+    .btn-directions:hover { background: var(--burnt); }
+
+    /* ── CTA BANNER ── */
+    .cta-banner {
+      background: var(--burnt);
+      padding: 5rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-banner::before {
+      content: 'WVB';
+      position: absolute;
+      font-family: 'Playfair Display', serif;
+      font-size: 22rem;
+      font-weight: 900;
+      color: rgba(0,0,0,0.08);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .cta-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 1rem;
+    }
+    .cta-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+    .cta-heading em { font-style: italic; font-weight: 400; }
+    .cta-sub {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+    .cta-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .btn-white {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      background: white;
+      color: var(--burnt);
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: all 0.25s;
+    }
+    .btn-white:hover { background: var(--charcoal); color: white; }
+    .btn-ghost-white {
+      display: inline-block;
+      padding: 1rem 2.5rem;
+      background: transparent;
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,0.4);
+      transition: all 0.25s;
+    }
+    .btn-ghost-white:hover { border-color: white; color: white; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--charcoal);
+      padding: 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--warm-white);
+    }
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--burnt); }
+    .footer-copy {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.06em;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <a href="/" class="nav-logo">Warm Vibe Bistro</a>
+  <div class="nav-links">
+    <a href="{% url 'menu:menu' %}">Menu</a>
+    <a href="{% url 'reservations:reservation' %}">Reservations</a>
+    <a href="#about">About</a>
+    <a href="#hours">Hours</a>
+    <a href="{% url 'menu:menu' %}" class="nav-cta">Order Now</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grain"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Lunch &amp; Dinner · Est. 2024</div>
+    <h1 class="hero-title">
+      Food that<br>
+      <em>warms</em><br>
+      the soul
+    </h1>
+    <p class="hero-sub">
+      Good food, good company, good times.
+      Every dish crafted with intention — every visit a reason to come back.
+    </p>
+    <div class="hero-actions">
+      <a href="{% url 'menu:menu' %}" class="btn-primary">Order Takeout</a>
+      <a href="{% url 'reservations:reservation' %}" class="btn-ghost">Reserve a Table</a>
+    </div>
+  </div>
+  <div class="hero-badge">
+    <div class="badge-label">Open Today</div>
+    <div class="badge-hours">11am – 10pm</div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-inner">
+    {% for i in "12" %}
+      <span class="ticker-item">Dine In</span>
+      <span class="ticker-item ticker-dot">·</span>
+      <span class="ticker-item">Takeout</span>
+      <span class="ticker-item ticker-dot">·</span>
+      <span class="ticker-item">Fresh Daily</span>
+      <span class="ticker-item ticker-dot">·</span>
+      <span class="ticker-item">Made with Love</span>
+      <span class="ticker-item ticker-dot">·</span>
+      <span class="ticker-item">Warm Vibe Bistro</span>
+      <span class="ticker-item ticker-dot">·</span>
+      <span class="ticker-item">Est. 2024</span>
+      <span class="ticker-item ticker-dot">·</span>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="about-visual">
+    <div class="about-visual-inner">
+      <div class="about-monogram">WVB</div>
+    </div>
+    <div class="about-year">Est. 2024</div>
+  </div>
+  <div class="about-text">
+    <div class="section-tag">Our Story</div>
+    <h2 class="about-heading">
+      A place where<br>
+      every meal feels<br>
+      like <em>home</em>
+    </h2>
+    <p class="about-body">
+      Warm Vibe Bistro was born from a simple belief — that great food has the power to bring people together.
+      We source fresh, quality ingredients and pour care into every dish that leaves our kitchen.
+      Whether you're joining us for a quiet lunch or a lively dinner with friends, you're always welcome here.
+    </p>
+    <div class="about-stats">
+      <div>
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Fresh Daily</div>
+      </div>
+      <div>
+        <div class="stat-num">2+</div>
+        <div class="stat-label">Years Serving</div>
+      </div>
+      <div>
+        <div class="stat-num">★ 4.9</div>
+        <div class="stat-label">Guest Rating</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED DISHES -->
+<section class="featured" id="menu">
+  <div class="section-header">
+    <div>
+      <div class="section-tag" style="color:var(--burnt);">From The Kitchen</div>
+      <h2 class="section-heading">Featured <em>Dishes</em></h2>
+    </div>
+    <a href="{% url 'menu:menu' %}" class="see-all">View Full Menu →</a>
+  </div>
+
+  <div class="dishes-grid">
+    {% for dish in featured_dishes %}
+      <a href="{% url 'menu:dish_detail' dish.slug %}" class="dish-card">
+        <div class="dish-img-wrap">
+          {% if dish.image %}
+            <img src="{{ dish.image.url }}" alt="{{ dish.name }}" loading="lazy"/>
+          {% else %}
+            <div class="dish-placeholder">No image yet</div>
+          {% endif %}
+        </div>
+        <div class="dish-info">
+          <div class="dish-category">{{ dish.category.name }}</div>
+          <div class="dish-name">{{ dish.name }}</div>
+          {% if dish.description %}
+            <div class="dish-desc">{{ dish.description|truncatewords:12 }}</div>
+          {% endif %}
+          <div class="dish-price">${{ dish.price }}</div>
+        </div>
+      </a>
+    {% empty %}
+      <p class="no-dishes-note">
+        Mark dishes as "featured" in the admin panel to showcase them here.
+      </p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- HOURS & LOCATION -->
+<section class="info-section" id="hours">
+  <div class="info-block">
+    <div class="section-tag">When To Visit</div>
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--charcoal);margin-bottom:2rem;line-height:1.1;">
+      Opening <em style="font-style:italic;color:var(--burnt);">Hours</em>
+    </h3>
+    <div class="hours-row">
+      <span class="hours-day">Monday – Friday</span>
+      <span class="hours-time">11:00 AM – 10:00 PM</span>
+    </div>
+    <div class="hours-row">
+      <span class="hours-day">Saturday</span>
+      <span class="hours-time">10:00 AM – 11:00 PM</span>
+    </div>
+    <div class="hours-row">
+      <span class="hours-day">Sunday</span>
+      <span class="hours-time">10:00 AM – 9:00 PM</span>
+    </div>
+  </div>
+
+  <div class="info-block" id="location">
+    <div class="section-tag">Find Us</div>
+    <div class="location-address">
+      123 Bistro Lane,<br>
+      Makati City,<br>
+      Metro Manila
+    </div>
+    <div class="location-detail">
+      Located in the heart of the city.<br>
+      Street parking available. Wheelchair accessible.<br>
+      Reservations recommended on weekends.
+    </div>
+    <a href="https://maps.google.com" target="_blank" class="btn-directions">Get Directions →</a>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="cta-banner">
+  <div class="cta-eyebrow">Ready to Eat?</div>
+  <h2 class="cta-heading">Book a table or <em>order now</em></h2>
+  <p class="cta-sub">Dine in with us or take your favourite dishes home.</p>
+  <div class="cta-actions">
+    <a href="{% url 'reservations:reservation' %}" class="btn-white">Reserve a Table</a>
+    <a href="{% url 'menu:menu' %}" class="btn-ghost-white">Order Takeout</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Warm Vibe Bistro</div>
+  <div class="footer-links">
+    <a href="{% url 'menu:menu' %}">Menu</a>
+    <a href="{% url 'reservations:reservation' %}">Reservations</a>
+    <a href="{% url 'orders:cart' %}">Cart</a>
+    <a href="{% url 'orders:order_history' %}">My Orders</a>
+  </div>
+  <div class="footer-copy">© 2024 Warm Vibe Bistro</div>
+</footer>
+
+<script>
+  // Sticky nav bg on scroll
+  const nav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  }, { passive: true });
+</script>
+
+</body>
+</html>

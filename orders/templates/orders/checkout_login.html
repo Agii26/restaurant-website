@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login to Continue</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Georgia', serif; background: #fafaf8; color: #2c2c2c; }
+    header { text-align: center; padding: 3rem 1rem 1.5rem; border-bottom: 1px solid #e0e0d8; }
+    header h1 { font-size: 2rem; font-weight: normal; }
+    header p { color: #777; margin-top: 0.5rem; }
+    .container { max-width: 820px; margin: 3rem auto; padding: 0 1.5rem 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    @media (max-width: 600px) { .container { grid-template-columns: 1fr; } }
+    .panel { background: #fff; border: 1px solid #e0e0d8; border-radius: 10px; padding: 2rem; }
+    .panel h2 { font-size: 1.2rem; font-weight: normal; margin-bottom: 1.5rem; padding-bottom: 0.8rem; border-bottom: 1px solid #e8e8e0; }
+    .form-group { margin-bottom: 1.2rem; }
+    label { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 0.4rem; }
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%; padding: 0.7rem 0.9rem; border: 1px solid #ddd;
+      border-radius: 6px; font-family: inherit; font-size: 0.95rem;
+    }
+    input:focus { outline: none; border-color: #2c2c2c; }
+    .remember { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 1rem; }
+    button[type="submit"] {
+      width: 100%; padding: 0.8rem; background: #2c2c2c; color: #fff;
+      border: none; border-radius: 6px; font-family: inherit; font-size: 0.95rem; cursor: pointer;
+    }
+    button[type="submit"]:hover { background: #444; }
+    .messages { margin-bottom: 1rem; }
+    .msg { padding: 0.7rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; font-size: 0.9rem; background: #fdecea; color: #c0392b; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Almost there!</h1>
+  <p>Log in or create an account to complete your order</p>
+</header>
+
+{% if messages %}
+  <div style="max-width:820px;margin:1rem auto;padding:0 1.5rem;">
+    {% for message in messages %}
+      <div class="msg">{{ message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="container">
+  <!-- LOGIN -->
+  <div class="panel">
+    <h2>Log In</h2>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="login">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" required>
+      </div>
+      <div class="remember">
+        <input type="checkbox" name="remember_me" id="remember_me">
+        <label for="remember_me" style="text-transform:none;letter-spacing:0;">Remember me</label>
+      </div>
+      <button type="submit">Log In & Continue</button>
+    </form>
+  </div>
+
+  <!-- REGISTER -->
+  <div class="panel">
+    <h2>Create Account</h2>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="register">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="reg_username" required>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="reg_email" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="reg_password1" required>
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" name="reg_password2" required>
+      </div>
+      <button type="submit">Create Account & Continue</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>
