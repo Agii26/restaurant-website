@@ -8,6 +8,16 @@ class Reservation(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
+    OCCASION_CHOICES = [
+        ('', 'No special occasion'),
+        ('birthday', 'Birthday'),
+        ('anniversary', 'Anniversary'),
+        ('date_night', 'Date Night'),
+        ('business', 'Business Dinner'),
+        ('celebration', 'Celebration'),
+        ('other', 'Other'),
+    ]
+
     # Customer Info
     name = models.CharField(max_length=150)
     email = models.EmailField()
@@ -18,6 +28,7 @@ class Reservation(models.Model):
     time = models.TimeField()
     number_of_guests = models.PositiveIntegerField()
     special_request = models.TextField(blank=True)
+    occasion = models.CharField(max_length=20, choices=OCCASION_CHOICES, blank=True)
 
     # System Fields
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)

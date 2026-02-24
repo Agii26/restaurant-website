@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Order — Warm Vibe Bistro</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f0e8;font-family:'Georgia',serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#c8572a;padding:28px 48px;text-align:center;">
+              <p style="margin:0 0 4px;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.7);">
+                New Order Alert
+              </p>
+              <h1 style="margin:0;font-family:'Georgia',serif;font-size:28px;font-weight:normal;color:#ffffff;">
+                Order #{{ order_number }}
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="background:#fdfaf5;padding:36px 48px;">
+
+              <p style="margin:0 0 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#7a6f62;border-bottom:1px solid #e8dcc8;padding-bottom:10px;">
+                Customer Details
+              </p>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="padding:6px 0;font-size:13px;color:#7a6f62;width:120px;">Name</td>
+                  <td style="padding:6px 0;font-size:14px;color:#1a1816;font-weight:bold;">{{ name }}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;font-size:13px;color:#7a6f62;">Email</td>
+                  <td style="padding:6px 0;font-size:14px;color:#1a1816;">{{ email }}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;font-size:13px;color:#7a6f62;">Phone</td>
+                  <td style="padding:6px 0;font-size:14px;color:#1a1816;">{{ phone }}</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 0;font-size:13px;color:#7a6f62;">Pickup</td>
+                  <td style="padding:6px 0;font-size:15px;color:#c8572a;font-weight:bold;font-style:italic;">{{ pickup_time }}</td>
+                </tr>
+                {{ order_notes_row }}
+              </table>
+
+              <p style="margin:0 0 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#7a6f62;border-bottom:1px solid #e8dcc8;padding-bottom:10px;">
+                Items Ordered
+              </p>
+
+              {{ order_items_html }}
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-top:2px solid #1a1816;">
+                <tr>
+                  <td style="padding:12px 0 0;font-size:13px;color:#7a6f62;text-transform:uppercase;letter-spacing:1px;">Total Received</td>
+                  <td style="padding:12px 0 0;text-align:right;font-size:26px;color:#1a1816;font-weight:bold;">
+                    &#8369;{{ total }}
+                  </td>
+                </tr>
+              </table>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
+                <tr>
+                  <td style="background:#e8f5e9;border-left:3px solid #4a7c59;padding:12px 16px;">
+                    <p style="margin:0;font-size:13px;color:#4a7c59;font-weight:bold;">
+                      Payment confirmed via Stripe
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#1a1816;padding:24px 48px;text-align:center;">
+              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);">
+                Warm Vibe Bistro Admin Notification
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

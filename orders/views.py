@@ -1,18 +1,21 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
-from django.utils import timezone
-from django.utils.http import urlencode
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from decimal import Decimal
-import datetime
+from django_ratelimit.decorators import ratelimit
+import stripe
 
-from menu.models import MenuItem, AddOn
+from menu.models import MenuItem
 from .cart import Cart
 from .models import Order, OrderItem, PromoCode
 from .forms import CheckoutForm, AddToCartForm, PromoCodeForm
+from .emails import send_customer_confirmation, send_restaurant_notification
+
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def add_to_cart(request, item_id):
@@ -25,8 +28,6 @@ def add_to_cart(request, item_id):
             addon = form.cleaned_data.get('addon')
             quantity = form.cleaned_data.get('quantity', 1)
             cart.add(menu_item, quantity=quantity, addon=addon)
-
-            # Build cart items list for response
             cart_items = []
             for item in cart:
                 cart_items.append({
@@ -45,9 +46,9 @@ def add_to_cart(request, item_id):
                 'cart_items': cart_items,
             })
 
-    # Non-AJAX fallback (direct visit)
     form = AddToCartForm(menu_item=menu_item)
     return render(request, 'orders/add_to_cart.html', {'form': form, 'item': menu_item})
+
 
 def cart_view(request):
     cart = Cart(request)
@@ -55,7 +56,6 @@ def cart_view(request):
     promo_discount = Decimal('0')
     promo_code_obj = None
 
-    # Handle promo code application
     if request.method == 'POST' and 'promo_code' in request.POST:
         promo_form = PromoCodeForm(request.POST)
         if promo_form.is_valid():
@@ -71,7 +71,6 @@ def cart_view(request):
                 messages.error(request, 'Invalid promo code.')
         return redirect('orders:cart')
 
-    # Handle quantity update / remove
     if request.method == 'POST':
         key = request.POST.get('key')
         action = request.POST.get('action')
@@ -82,7 +81,6 @@ def cart_view(request):
             cart.update_quantity(key, qty)
         return redirect('orders:cart')
 
-    # Apply saved promo
     promo_code = request.session.get('promo_code')
     if promo_code:
         try:
@@ -105,15 +103,19 @@ def cart_view(request):
     })
 
 
+
+
+@ratelimit(key='ip', rate='10/h', method='POST', block=False)
 def checkout_view(request):
     cart = Cart(request)
     if cart.is_empty():
         return redirect('orders:cart')
 
-    # Require login
-    if not request.user.is_authenticated:
-        params = urlencode({'next': '/orders/checkout/'})
-        return redirect(f'/orders/login/?{params}')
+    # ── Rate limit check ──
+    was_limited = getattr(request, 'limited', False)
+    if was_limited and request.method == 'POST':
+        messages.error(request, 'Too many attempts. Please wait a while before trying again.')
+        return redirect('orders:checkout')
 
     promo_code_obj = None
     promo_discount = Decimal('0')
@@ -130,17 +132,21 @@ def checkout_view(request):
     total = max(subtotal - promo_discount, Decimal('0'))
 
     if request.method == 'POST':
+        # ── Honeypot check ──
+        if request.POST.get('website'):
+            return redirect('orders:cart')
+
         form = CheckoutForm(request.POST)
         if form.is_valid():
             order = form.save(commit=False)
-            order.user = request.user
+            order.user = request.user if request.user.is_authenticated else None
             order.subtotal = subtotal
             order.discount_amount = promo_discount
             order.total = total
             order.promo_code = promo_code_obj
+            order.status = 'pending'
             order.save()
 
-            # Save order items
             for item in cart:
                 OrderItem.objects.create(
                     order=order,
@@ -151,20 +157,48 @@ def checkout_view(request):
                     item_total=item['total'],
                 )
 
-            # Update promo usage
-            if promo_code_obj:
-                promo_code_obj.times_used += 1
-                promo_code_obj.save()
-                del request.session['promo_code']
+            request.session['pending_order_id'] = order.pk
 
-            cart.clear()
-            return redirect('orders:order_confirmation', pk=order.pk)
+            try:
+                checkout_session = stripe.checkout.Session.create(
+                    payment_method_types=['card'],
+                    line_items=[{
+                        'price_data': {
+                            'currency': 'php',
+                            'product_data': {
+                                'name': f'Warm Vibe Bistro — Order #{str(order.order_number)[:8].upper()}',
+                                'description': f'Pickup at {order.pickup_time.strftime("%b %d, %Y %I:%M %p")}',
+                            },
+                            'unit_amount': int(total * 100),
+                        },
+                        'quantity': 1,
+                    }],
+                    mode='payment',
+                    customer_email=order.email,
+                    success_url=request.build_absolute_uri('/orders/payment/success/'),
+                    cancel_url=request.build_absolute_uri('/orders/payment/cancel/'),
+                    metadata={'order_id': str(order.pk)},
+                )
+                return redirect(checkout_session.url, code=303)
+
+            except stripe.error.StripeError as e:
+                order.delete()
+                messages.error(request, f'Payment error: {str(e)}. Please try again.')
+
     else:
-        # Pre-fill name/email/phone from user profile if available
-        form = CheckoutForm(initial={
-            'name': request.user.get_full_name() or request.user.username,
-            'email': request.user.email,
-        })
+        initial = {}
+        if request.user.is_authenticated:
+            initial = {
+                'name': request.user.get_full_name() or request.user.username,
+                'email': request.user.email,
+            }
+        else:
+            initial = {
+                'name': request.COOKIES.get('guest_name', ''),
+                'email': request.COOKIES.get('guest_email', ''),
+                'phone': request.COOKIES.get('guest_phone', ''),
+            }
+        form = CheckoutForm(initial=initial)
 
     return render(request, 'orders/checkout.html', {
         'form': form,
@@ -173,47 +207,91 @@ def checkout_view(request):
         'promo_discount': promo_discount,
         'total': total,
         'promo_code': promo_code_obj,
+        'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
     })
 
 
-def checkout_login(request):
-    next_url = request.GET.get('next', '/orders/checkout/')
+def payment_success(request):
+    order_id = request.session.get('pending_order_id')
+    if not order_id:
+        return redirect('orders:cart')
 
-    if request.user.is_authenticated:
-        return redirect(next_url)
+    try:
+        order = Order.objects.get(pk=order_id)
+    except Order.DoesNotExist:
+        return redirect('orders:cart')
 
-    if request.method == 'POST':
-        action = request.POST.get('action')
+    # Confirm the order
+    order.status = 'confirmed'
+    order.save()
 
-        if action == 'login':
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-            remember = request.POST.get('remember_me')
-            user = authenticate(request, username=username, password=password)
-            if user:
-                login(request, user)
-                if not remember:
-                    request.session.set_expiry(0)
-                return redirect(next_url)
-            else:
-                messages.error(request, 'Invalid username or password.')
+    # Update promo usage
+    if order.promo_code:
+        order.promo_code.times_used += 1
+        order.promo_code.save()
+        if 'promo_code' in request.session:
+            del request.session['promo_code']
 
-        elif action == 'register':
-            username = request.POST.get('reg_username')
-            email = request.POST.get('reg_email')
-            password1 = request.POST.get('reg_password1')
-            password2 = request.POST.get('reg_password2')
+    # Send both emails
+    send_customer_confirmation(order)
+    send_restaurant_notification(order)
 
-            if password1 != password2:
-                messages.error(request, 'Passwords do not match.')
-            elif User.objects.filter(username=username).exists():
-                messages.error(request, 'Username already taken.')
-            else:
-                user = User.objects.create_user(username=username, email=email, password=password1)
-                login(request, user)
-                return redirect(next_url)
+    # Clear cart and session
+    cart = Cart(request)
+    cart.clear()
+    del request.session['pending_order_id']
 
-    return render(request, 'orders/checkout_login.html', {'next': next_url})
+    # Set autofill cookies and redirect
+    response = redirect('orders:order_confirmation', pk=order.pk)
+    response.set_cookie('guest_name', order.name, max_age=60*60*24*90)
+    response.set_cookie('guest_email', order.email, max_age=60*60*24*90)
+    response.set_cookie('guest_phone', order.phone, max_age=60*60*24*90)
+    return response
+
+
+def payment_cancel(request):
+    order_id = request.session.get('pending_order_id')
+    if order_id:
+        try:
+            Order.objects.get(pk=order_id, status='pending').delete()
+        except Order.DoesNotExist:
+            pass
+        del request.session['pending_order_id']
+
+    messages.error(request, 'Payment was cancelled. Your cart has been kept — please try again.')
+    return redirect('orders:checkout')
+
+
+@csrf_exempt
+@require_POST
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    webhook_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
+
+    if not webhook_secret:
+        return HttpResponse(status=200)
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except (ValueError, stripe.error.SignatureVerificationError):
+        return HttpResponse(status=400)
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        order_id = session.get('metadata', {}).get('order_id')
+        if order_id:
+            try:
+                order = Order.objects.get(pk=order_id)
+                if order.status == 'pending':
+                    order.status = 'confirmed'
+                    order.save()
+                    send_customer_confirmation(order)
+                    send_restaurant_notification(order)
+            except Order.DoesNotExist:
+                pass
+
+    return HttpResponse(status=200)
 
 
 def order_confirmation(request, pk):
@@ -221,10 +299,26 @@ def order_confirmation(request, pk):
     return render(request, 'orders/order_confirmation.html', {'order': order})
 
 
-@login_required
 def order_history(request):
-    orders = Order.objects.filter(user=request.user).prefetch_related('items')
-    return render(request, 'orders/order_history.html', {'orders': orders})
+    orders = []
+    email_query = request.GET.get('email', '').strip()
+    looked_up = False
+
+    if email_query:
+        orders = Order.objects.filter(
+            email__iexact=email_query,
+            status__in=['confirmed', 'preparing', 'ready', 'completed']
+        ).prefetch_related('items').order_by('-id')
+        looked_up = True
+    elif request.user.is_authenticated:
+        orders = Order.objects.filter(user=request.user).prefetch_related('items').order_by('-id')
+
+    return render(request, 'orders/order_history.html', {
+        'orders': orders,
+        'email_query': email_query,
+        'looked_up': looked_up,
+    })
+
 
 def cart_count(request):
     cart = Cart(request)

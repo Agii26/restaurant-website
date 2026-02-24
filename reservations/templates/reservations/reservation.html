@@ -3,117 +3,270 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Make a Reservation</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Georgia', serif; background: #fafaf8; color: #2c2c2c; }
-
-    header { text-align: center; padding: 3rem 1rem 1.5rem; border-bottom: 1px solid #e0e0d8; }
-    header h1 { font-size: 2.2rem; font-weight: normal; letter-spacing: 0.05em; }
-    header p { margin-top: 0.5rem; color: #777; font-size: 1rem; }
-
-    .container { max-width: 600px; margin: 3rem auto; padding: 0 1.5rem 4rem; }
-
-    .notice {
-      background: #fef9ec; border: 1px solid #f0e0a0;
-      border-radius: 8px; padding: 1rem 1.2rem;
-      font-size: 0.9rem; color: #7a6020; margin-bottom: 2rem;
-    }
-
-    .form-group { margin-bottom: 1.4rem; }
-    label { display: block; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: #888; margin-bottom: 0.4rem; }
-
-    input, textarea {
-      width: 100%; padding: 0.7rem 0.9rem;
-      border: 1px solid #ddd; border-radius: 6px;
-      font-family: inherit; font-size: 0.95rem;
-      background: #fff; color: #2c2c2c;
-      transition: border-color 0.2s;
-    }
-    input:focus, textarea:focus { outline: none; border-color: #2c2c2c; }
-
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-
-    .error-list { list-style: none; margin-top: 0.4rem; }
-    .error-list li { font-size: 0.85rem; color: #c0392b; margin-top: 0.2rem; }
-
-    button[type="submit"] {
-      width: 100%; padding: 0.9rem;
-      background: #2c2c2c; color: #fff;
-      border: none; border-radius: 6px;
-      font-family: inherit; font-size: 1rem;
-      letter-spacing: 0.05em; cursor: pointer;
-      transition: background 0.2s; margin-top: 0.5rem;
-    }
-    button[type="submit"]:hover { background: #444; }
-
-    .back { display: inline-block; margin-bottom: 1.5rem; font-size: 0.9rem; color: #888; text-decoration: none; }
-    .back:hover { color: #2c2c2c; }
-  </style>
+  <title>Reserve a Table — Warm Vibe Bistro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/reservation.css' %}">
 </head>
 <body>
 
-<header>
-  <h1>Reserve a Table</h1>
-  <p>We look forward to having you</p>
-</header>
+<!-- NAV -->
+<nav class="site-nav">
+  <a href="/" class="nav-logo">Warm Vibe Bistro</a>
+  <div class="nav-links">
+    <a href="{% url 'menu:menu' %}">Menu</a>
+    <a href="{% url 'reservations:reservation' %}">Reservations</a>
+    <a href="/#hours">Hours</a>
+    <a href="{% url 'menu:menu' %}" class="nav-cta">Order Now</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="header-eyebrow">Warm Vibe Bistro</div>
+  <h1>Reserve a <em>Table</em></h1>
+  <p>Mon – Fri 11am–10pm &nbsp;·&nbsp; Sat 10am–11pm &nbsp;·&nbsp; Sun 10am–9pm</p>
+</div>
 
 <div class="container">
-  <a href="/" class="back">← Back to Home</a>
 
-  <div class="notice">
-    Groups of 1–4 are confirmed instantly. Groups of 5 or more require manual approval — we'll contact you within 24 hours.
+  {% if messages %}
+    <div style="margin-bottom:1.5rem;">
+      {% for message in messages %}
+        <div style="padding:0.9rem 1.2rem;border-left:3px solid #9b3a3a;background:#fdf0f0;color:#9b3a3a;font-size:0.85rem;margin-bottom:0.5rem;">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="reservation-layout">
+
+    <!-- FORM CARD -->
+    <div class="form-card">
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <!-- ── HONEYPOT — hidden from real users, bots fill it ── -->
+        <div style="display:none;position:absolute;left:-9999px;" aria-hidden="true">
+          <input type="text" name="website" tabindex="-1" autocomplete="off" value="">
+        </div>
+
+        <!-- Step 1: Party Size -->
+        <div class="form-step">
+          <div class="step-header">
+            <span class="step-number">01</span>
+            <div>
+              <div class="step-title">Party Size</div>
+              <div class="step-sub">How many guests are joining?</div>
+            </div>
+          </div>
+
+          <div class="guest-selector">
+            {% for i in "12345678" %}
+              <label class="guest-option">
+                <input type="radio" name="number_of_guests" value="{{ forloop.counter }}"
+                  {% if form.number_of_guests.value == forloop.counter|stringformat:"s" %}checked{% endif %}>
+                <span class="guest-btn">
+                  <span class="guest-num">{{ forloop.counter }}</span>
+                  <span class="guest-label">{% if forloop.counter == 1 %}Guest{% else %}Guests{% endif %}</span>
+                </span>
+              </label>
+            {% endfor %}
+          </div>
+          {% if form.number_of_guests.errors %}
+            <ul class="error-list">{% for e in form.number_of_guests.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+          {% endif %}
+
+          <div class="approval-notice" id="approvalInstant">
+            <div class="notice-instant">
+              <span class="notice-icon">⚡</span>
+              <div><strong>Instant confirmation</strong> for groups of 1–4. Your table is confirmed immediately.</div>
+            </div>
+          </div>
+          <div class="approval-notice" id="approvalManual" style="display:none;">
+            <div class="notice-manual">
+              <span class="notice-icon">📋</span>
+              <div><strong>Manual approval</strong> for groups of 5+. We'll contact you within 24 hours.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Date & Time -->
+        <div class="form-step">
+          <div class="step-header">
+            <span class="step-number">02</span>
+            <div>
+              <div class="step-title">Date &amp; Time</div>
+              <div class="step-sub">When would you like to visit?</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>{{ form.date.label }}</label>
+              {{ form.date }}
+              {% if form.date.errors %}<ul class="error-list">{% for e in form.date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+            <div class="form-group">
+              <label>Preferred Time</label>
+              <select name="time" id="id_time">
+                <option value="">Select a time</option>
+                <optgroup label="— Lunch —">
+                  <option value="11:00">11:00 AM</option>
+                  <option value="11:30">11:30 AM</option>
+                  <option value="12:00">12:00 PM</option>
+                  <option value="12:30">12:30 PM</option>
+                  <option value="13:00">1:00 PM</option>
+                  <option value="13:30">1:30 PM</option>
+                  <option value="14:00">2:00 PM</option>
+                  <option value="14:30">2:30 PM</option>
+                </optgroup>
+                <optgroup label="— Dinner —">
+                  <option value="17:00">5:00 PM</option>
+                  <option value="17:30">5:30 PM</option>
+                  <option value="18:00">6:00 PM</option>
+                  <option value="18:30">6:30 PM</option>
+                  <option value="19:00">7:00 PM</option>
+                  <option value="19:30">7:30 PM</option>
+                  <option value="20:00">8:00 PM</option>
+                  <option value="20:30">8:30 PM</option>
+                  <option value="21:00">9:00 PM</option>
+                </optgroup>
+              </select>
+              {% if form.time.errors %}<ul class="error-list">{% for e in form.time.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Occasion -->
+        <div class="form-step">
+          <div class="step-header">
+            <span class="step-number">03</span>
+            <div>
+              <div class="step-title">Occasion <span class="optional">optional</span></div>
+              <div class="step-sub">Are you celebrating something special?</div>
+            </div>
+          </div>
+
+          <div class="occasion-grid">
+            <label class="occasion-option">
+              <input type="radio" name="occasion" value="birthday">
+              <span class="occasion-btn">🎂 Birthday</span>
+            </label>
+            <label class="occasion-option">
+              <input type="radio" name="occasion" value="anniversary">
+              <span class="occasion-btn">💍 Anniversary</span>
+            </label>
+            <label class="occasion-option">
+              <input type="radio" name="occasion" value="date_night">
+              <span class="occasion-btn">🕯️ Date Night</span>
+            </label>
+            <label class="occasion-option">
+              <input type="radio" name="occasion" value="business">
+              <span class="occasion-btn">💼 Business Dinner</span>
+            </label>
+            <label class="occasion-option">
+              <input type="radio" name="occasion" value="celebration">
+              <span class="occasion-btn">🥂 Celebration</span>
+            </label>
+            <label class="occasion-option">
+              <input type="radio" name="occasion" value="other">
+              <span class="occasion-btn">✨ Other</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Step 4: Your Details -->
+        <div class="form-step">
+          <div class="step-header">
+            <span class="step-number">04</span>
+            <div>
+              <div class="step-title">Your Details</div>
+              <div class="step-sub">So we know who to expect</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>{{ form.name.label }}</label>
+            {{ form.name }}
+            {% if form.name.errors %}<ul class="error-list">{% for e in form.name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>{{ form.email.label }}</label>
+              {{ form.email }}
+              {% if form.email.errors %}<ul class="error-list">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+            <div class="form-group">
+              <label>{{ form.phone.label }}</label>
+              {{ form.phone }}
+              {% if form.phone.errors %}<ul class="error-list">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Special Requests <span class="optional">optional</span></label>
+            {{ form.special_request }}
+          </div>
+        </div>
+
+        <button type="submit" class="btn-reserve">Reserve My Table →</button>
+
+      </form>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="info-card">
+        <div class="info-section-label">Hours</div>
+        <div class="hours-row"><span>Mon – Fri</span><span>11am – 10pm</span></div>
+        <div class="hours-row"><span>Saturday</span><span>10am – 11pm</span></div>
+        <div class="hours-row"><span>Sunday</span><span>10am – 9pm</span></div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-section-label">Location</div>
+        <p class="info-address">123 Bistro Lane,<br>Makati City,<br>Metro Manila</p>
+        <a href="https://maps.google.com" target="_blank" class="btn-directions">Get Directions →</a>
+      </div>
+
+      <div class="info-card policy-card">
+        <div class="info-section-label">Good to Know</div>
+        <ul class="policy-list">
+          <li>Reservations held for <strong>15 minutes</strong> past booking time</li>
+          <li>Groups of 5+ require <strong>manual approval</strong></li>
+          <li>Special occasions? Leave a note and we'll prepare</li>
+          <li>Walk-ins welcome based on availability</li>
+        </ul>
+      </div>
+    </div>
+
   </div>
-
-  <form method="POST" novalidate>
-    {% csrf_token %}
-
-    <div class="form-group">
-      <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-      {{ form.name }}
-      {% if form.name.errors %}<ul class="error-list">{% for e in form.name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-    </div>
-
-    <div class="row">
-      <div class="form-group">
-        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
-        {{ form.email }}
-        {% if form.email.errors %}<ul class="error-list">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-      </div>
-      <div class="form-group">
-        <label for="{{ form.phone.id_for_label }}">{{ form.phone.label }}</label>
-        {{ form.phone }}
-        {% if form.phone.errors %}<ul class="error-list">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="form-group">
-        <label for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
-        {{ form.date }}
-        {% if form.date.errors %}<ul class="error-list">{% for e in form.date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-      </div>
-      <div class="form-group">
-        <label for="{{ form.time.id_for_label }}">{{ form.time.label }}</label>
-        {{ form.time }}
-        {% if form.time.errors %}<ul class="error-list">{% for e in form.time.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label for="{{ form.number_of_guests.id_for_label }}">{{ form.number_of_guests.label }}</label>
-      {{ form.number_of_guests }}
-      {% if form.number_of_guests.errors %}<ul class="error-list">{% for e in form.number_of_guests.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-    </div>
-
-    <div class="form-group">
-      <label for="{{ form.special_request.id_for_label }}">{{ form.special_request.label }}</label>
-      {{ form.special_request }}
-    </div>
-
-    <button type="submit">Book My Table</button>
-  </form>
 </div>
+
+<script>
+  const radios = document.querySelectorAll('input[name="number_of_guests"]');
+  const instant = document.getElementById('approvalInstant');
+  const manual = document.getElementById('approvalManual');
+
+  function updateNotice() {
+    const checked = document.querySelector('input[name="number_of_guests"]:checked');
+    if (!checked) return;
+    const val = parseInt(checked.value);
+    instant.style.display = val <= 4 ? 'block' : 'none';
+    manual.style.display = val >= 5 ? 'block' : 'none';
+  }
+
+  radios.forEach(r => r.addEventListener('change', updateNotice));
+  updateNotice();
+
+  const dateInput = document.querySelector('input[type="date"]');
+  if (dateInput && !dateInput.value) {
+    dateInput.min = new Date().toISOString().split('T')[0];
+  }
+</script>
 
 </body>
 </html>

@@ -3,279 +3,91 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Checkout</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <title>Checkout — Warm Vibe Bistro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --cream: #f5f2ec;
-      --warm-white: #faf8f4;
-      --dark: #1c1a17;
-      --mid: #6b6560;
-      --light-border: #e2ddd6;
-      --accent: #8b6f47;
-      --accent-light: #c4a882;
-      --success: #4a7c59;
-      --error-color: #9b3a3a;
+      --burnt: #c8572a; --burnt-dark: #a03d18; --charcoal: #1a1816;
+      --sand: #e8dcc8; --sand-light: #f5f0e8; --warm-white: #fdfaf5;
+      --mid: #7a6f62; --light: #b8a898; --success: #4a7c59; --error: #9b3a3a;
     }
-
-    body {
-      font-family: 'Jost', sans-serif;
-      background: var(--warm-white);
-      color: var(--dark);
-      font-weight: 300;
-      min-height: 100vh;
-    }
-
-    /* ── Header ── */
-    header {
-      text-align: center;
-      padding: 4rem 1rem 2.5rem;
-      border-bottom: 1px solid var(--light-border);
-    }
-    .header-eyebrow {
-      font-size: 0.7rem;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 0.8rem;
-    }
-    header h1 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(2.5rem, 5vw, 4rem);
-      font-weight: 300;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      line-height: 1;
-    }
-
-    /* ── Steps indicator ── */
-    .steps {
-      display: flex;
-      justify-content: center;
-      gap: 0;
-      border-bottom: 1px solid var(--light-border);
-      background: var(--warm-white);
-    }
-    .step {
-      font-size: 0.68rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      padding: 1rem 2rem;
-      color: var(--mid);
-      border-right: 1px solid var(--light-border);
-      position: relative;
-    }
-    .step:first-child { border-left: 1px solid var(--light-border); }
-    .step.active { color: var(--dark); }
-    .step.active::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--accent);
-    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--warm-white); color: var(--charcoal); font-weight: 300; min-height: 100vh; }
+    .site-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 1.4rem 3rem; background: var(--charcoal); box-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--warm-white); text-decoration: none; }
+    .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+    .nav-links a { font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.7); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--sand); }
+    .nav-cta { background: var(--burnt) !important; color: white !important; padding: 0.5rem 1.2rem !important; }
+    .nav-cta:hover { background: var(--burnt-dark) !important; }
+    @media (max-width: 640px) { .site-nav { padding: 1.2rem 1.5rem; } .nav-links a:not(.nav-cta) { display: none; } }
+    .page-header { padding: 9rem 3rem 3rem; background: var(--charcoal); position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .page-header::before { content: 'CHECKOUT'; position: absolute; font-family: 'Playfair Display', serif; font-size: 12rem; font-weight: 900; color: rgba(255,255,255,0.025); top: 50%; right: -1rem; transform: translateY(-50%); pointer-events: none; white-space: nowrap; letter-spacing: -0.02em; }
+    .header-eyebrow { display: inline-flex; align-items: center; gap: 0.8rem; font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--burnt); margin-bottom: 1rem; }
+    .header-eyebrow::before { content: ''; display: block; width: 30px; height: 1px; background: var(--burnt); }
+    .page-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 900; color: var(--warm-white); line-height: 0.95; letter-spacing: -0.02em; }
+    .page-header h1 em { font-style: italic; color: var(--burnt); font-weight: 400; }
+    .steps { display: flex; justify-content: center; background: var(--charcoal); border-bottom: 1px solid rgba(255,255,255,0.07); }
+    .step { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 1rem 2rem; color: rgba(255,255,255,0.3); border-right: 1px solid rgba(255,255,255,0.07); position: relative; }
+    .step:first-child { border-left: 1px solid rgba(255,255,255,0.07); }
     .step.done { color: var(--success); }
-
-    /* ── Container ── */
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 3rem 2rem 6rem;
-    }
-
-    .back {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.72rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--mid);
-      text-decoration: none;
-      margin-bottom: 2.5rem;
-      transition: color 0.2s;
-    }
-    .back:hover { color: var(--accent); }
-
-    /* ── Layout ── */
-    .checkout-layout {
-      display: grid;
-      grid-template-columns: 1fr 360px;
-      gap: 3rem;
-      align-items: start;
-    }
-    @media (max-width: 760px) {
-      .checkout-layout { grid-template-columns: 1fr; }
-    }
-
-    /* ── Section label ── */
-    .section-label {
-      font-size: 0.68rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--mid);
-      margin-bottom: 1.5rem;
-      padding-bottom: 0.8rem;
-      border-bottom: 1px solid var(--light-border);
-    }
-
-    /* ── Form ── */
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.2rem;
-    }
+    .step.active { color: var(--sand); }
+    .step.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--burnt); }
+    .container { max-width: 1000px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+    .back { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mid); text-decoration: none; margin-bottom: 2.5rem; transition: color 0.2s; }
+    .back:hover { color: var(--burnt); }
+    .checkout-layout { display: grid; grid-template-columns: 1fr 360px; gap: 3rem; align-items: start; }
+    @media (max-width: 760px) { .checkout-layout { grid-template-columns: 1fr; } }
+    .section-label { font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--burnt); margin-bottom: 1.5rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--sand); display: flex; align-items: center; gap: 0.8rem; }
+    .section-label::after { content: ''; display: block; width: 30px; height: 1px; background: var(--burnt); opacity: 0.4; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
     @media (max-width: 500px) { .form-row { grid-template-columns: 1fr; } }
-
     .form-group { margin-bottom: 1.4rem; }
-
-    label {
-      display: block;
-      font-size: 0.68rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--mid);
-      margin-bottom: 0.5rem;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    input[type="datetime-local"],
-    textarea {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border: 1px solid var(--light-border);
-      background: var(--warm-white);
-      font-family: 'Jost', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 300;
-      color: var(--dark);
-      transition: border-color 0.2s;
-      appearance: none;
-    }
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
+    label { display: block; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mid); margin-bottom: 0.5rem; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="datetime-local"], textarea { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--sand); background: var(--warm-white); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 300; color: var(--charcoal); transition: border-color 0.2s; appearance: none; }
+    input:focus, textarea:focus { outline: 2px solid var(--burnt); border-color: transparent; }
     textarea { resize: vertical; min-height: 90px; }
-
     .error-list { list-style: none; margin-top: 0.4rem; }
-    .error-list li {
-      font-size: 0.75rem;
-      color: var(--error-color);
-      letter-spacing: 0.04em;
-    }
-
-    .btn-place-order {
-      width: 100%;
-      padding: 1.1rem;
-      background: var(--dark);
-      color: var(--warm-white);
-      border: none;
-      font-family: 'Jost', sans-serif;
-      font-size: 0.72rem;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      cursor: pointer;
-      margin-top: 0.5rem;
-      transition: background 0.2s;
-    }
-    .btn-place-order:hover { background: var(--accent); }
-
-    /* ── Order Summary Panel ── */
-    .summary-panel {
-      background: var(--cream);
-      border: 1px solid var(--light-border);
-      padding: 1.8rem;
-      position: sticky;
-      top: 2rem;
-    }
-
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 1rem;
-      padding: 0.7rem 0;
-      border-bottom: 1px solid var(--light-border);
-      font-size: 0.85rem;
-    }
+    .error-list li { font-size: 0.75rem; color: var(--error); letter-spacing: 0.04em; }
+    .guest-note { background: var(--sand-light); border-left: 3px solid var(--burnt); padding: 0.9rem 1.2rem; font-size: 0.82rem; color: var(--mid); line-height: 1.6; margin-bottom: 1.8rem; }
+    .guest-note strong { color: var(--charcoal); font-weight: 500; }
+    .btn-place-order { width: 100%; padding: 1.1rem; background: var(--burnt); color: white; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; margin-top: 0.5rem; transition: background 0.2s, transform 0.2s; }
+    .btn-place-order:hover { background: var(--burnt-dark); transform: translateY(-1px); }
+    .summary-panel { background: var(--sand-light); border: 1px solid var(--sand); padding: 1.8rem; position: sticky; top: 6rem; }
+    .summary-item { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: 0.7rem 0; border-bottom: 1px solid var(--sand); font-size: 0.85rem; }
     .summary-item:last-of-type { border-bottom: none; }
-    .summary-item-name {
-      color: var(--dark);
-      flex: 1;
-    }
-    .summary-item-qty {
-      font-size: 0.75rem;
-      color: var(--mid);
-      white-space: nowrap;
-    }
-    .summary-item-price {
-      color: var(--dark);
-      white-space: nowrap;
-    }
-
-    .divider {
-      border: none;
-      border-top: 1px solid var(--light-border);
-      margin: 1rem 0;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.3rem 0;
-      font-size: 0.82rem;
-      color: var(--mid);
-    }
+    .summary-item-name { font-family: 'Playfair Display', serif; color: var(--charcoal); flex: 1; font-weight: 400; }
+    .summary-item-addon { font-size: 0.75rem; color: var(--burnt); opacity: 0.8; }
+    .summary-item-qty { font-size: 0.75rem; color: var(--mid); white-space: nowrap; }
+    .summary-item-price { color: var(--charcoal); white-space: nowrap; }
+    .divider { border: none; border-top: 1px solid var(--sand); margin: 1rem 0; }
+    .summary-row { display: flex; justify-content: space-between; padding: 0.3rem 0; font-size: 0.82rem; color: var(--mid); }
     .summary-row.discount { color: var(--success); }
-    .summary-row.total-row {
-      padding-top: 0.8rem;
-      margin-top: 0.4rem;
-      border-top: 1px solid var(--light-border);
-      font-size: 0.88rem;
-      color: var(--dark);
-    }
-    .summary-row.total-row span:last-child {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.5rem;
-      font-weight: 400;
-    }
-
-    .pickup-note {
-      margin-top: 1.5rem;
-      padding: 1rem;
-      background: var(--warm-white);
-      border: 1px solid var(--light-border);
-      font-size: 0.78rem;
-      color: var(--mid);
-      line-height: 1.6;
-      letter-spacing: 0.03em;
-    }
-    .pickup-note strong {
-      display: block;
-      font-weight: 500;
-      color: var(--dark);
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 0.4rem;
-    }
+    .summary-row.total-row { padding-top: 0.8rem; margin-top: 0.4rem; border-top: 1px solid var(--sand); color: var(--charcoal); }
+    .summary-row.total-row span:last-child { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--burnt); }
+    .pickup-note { margin-top: 1.5rem; padding: 1rem; background: var(--warm-white); border: 1px solid var(--sand); font-size: 0.78rem; color: var(--mid); line-height: 1.7; }
+    .pickup-note strong { display: block; font-weight: 500; color: var(--charcoal); font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.4rem; }
   </style>
 </head>
 <body>
 
-<header>
+<nav class="site-nav">
+  <a href="/" class="nav-logo">Warm Vibe Bistro</a>
+  <div class="nav-links">
+    <a href="{% url 'menu:menu' %}">Menu</a>
+    <a href="{% url 'reservations:reservation' %}">Reservations</a>
+    <a href="{% url 'orders:cart' %}" class="nav-cta">Cart</a>
+  </div>
+</nav>
+
+<div class="page-header">
   <div class="header-eyebrow">Takeout Order</div>
-  <h1>Checkout</h1>
-</header>
+  <h1>Check<em>out</em></h1>
+</div>
 
 <div class="steps">
   <div class="step done">Cart</div>
-  <div class="step active">Details</div>
+  <div class="step active">Your Details</div>
   <div class="step">Confirmation</div>
 </div>
 
@@ -283,93 +95,66 @@
   <a href="{% url 'orders:cart' %}" class="back">← Back to cart</a>
 
   <div class="checkout-layout">
-
-    <!-- Form -->
     <div>
       <div class="section-label">Your Details</div>
+      <div class="guest-note">
+        <strong>No account needed.</strong> Just fill in your details and we'll send your confirmation to your email.
+      </div>
       <form method="POST">
         {% csrf_token %}
-
         <div class="form-row">
           <div class="form-group">
             <label>{{ form.name.label }}</label>
             {{ form.name }}
-            {% if form.name.errors %}
-              <ul class="error-list">{% for e in form.name.errors %}<li>{{ e }}</li>{% endfor %}</ul>
-            {% endif %}
+            {% if form.name.errors %}<ul class="error-list">{% for e in form.name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
           </div>
           <div class="form-group">
             <label>{{ form.phone.label }}</label>
             {{ form.phone }}
-            {% if form.phone.errors %}
-              <ul class="error-list">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>
-            {% endif %}
+            {% if form.phone.errors %}<ul class="error-list">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
           </div>
         </div>
-
         <div class="form-group">
           <label>{{ form.email.label }}</label>
           {{ form.email }}
-          {% if form.email.errors %}
-            <ul class="error-list">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>
-          {% endif %}
+          {% if form.email.errors %}<ul class="error-list">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
         </div>
-
         <div class="form-group">
           <label>{{ form.pickup_time.label }}</label>
           {{ form.pickup_time }}
-          {% if form.pickup_time.errors %}
-            <ul class="error-list">{% for e in form.pickup_time.errors %}<li>{{ e }}</li>{% endfor %}</ul>
-          {% endif %}
+          {% if form.pickup_time.errors %}<ul class="error-list">{% for e in form.pickup_time.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
         </div>
-
         <div class="form-group">
           <label>{{ form.order_notes.label }}</label>
           {{ form.order_notes }}
         </div>
-
-        <button type="submit" class="btn-place-order">Place Order</button>
+        <button type="submit" class="btn-place-order">Place Order →</button>
       </form>
     </div>
 
-    <!-- Summary Panel -->
     <div class="summary-panel">
       <div class="section-label">Order Summary</div>
-
       {% for item in cart %}
         <div class="summary-item">
           <span class="summary-item-name">
             {{ item.name }}
-            {% if item.addon_name %}<br><small style="color:var(--accent-light);font-size:0.75rem;">+ {{ item.addon_name }}</small>{% endif %}
+            {% if item.addon_name %}<br><span class="summary-item-addon">+ {{ item.addon_name }}</span>{% endif %}
           </span>
-          <span class="summary-item-qty">{{ item.quantity }}×</span>
+          <span class="summary-item-qty">{{ item.quantity }}x</span>
           <span class="summary-item-price">${{ item.total }}</span>
         </div>
       {% endfor %}
-
       <hr class="divider">
-
-      <div class="summary-row">
-        <span>Subtotal</span>
-        <span>${{ subtotal }}</span>
-      </div>
+      <div class="summary-row"><span>Subtotal</span><span>${{ subtotal }}</span></div>
       {% if promo_discount %}
-        <div class="summary-row discount">
-          <span>Discount ({{ promo_code.discount_percent }}% off)</span>
-          <span>−${{ promo_discount }}</span>
-        </div>
+        <div class="summary-row discount"><span>Discount ({{ promo_code.discount_percent }}% off)</span><span>-${{ promo_discount }}</span></div>
       {% endif %}
-      <div class="summary-row total-row">
-        <span>Total</span>
-        <span>${{ total }}</span>
-      </div>
-
+      <div class="summary-row total-row"><span>Total</span><span>${{ total }}</span></div>
       <div class="pickup-note">
         <strong>Pickup Information</strong>
-        Please arrive at your selected pickup time. Bring your order confirmation email or order number.
+        Please arrive at your selected pickup time. Bring your confirmation email or order number.
       </div>
     </div>
-
   </div>
 </div>
 

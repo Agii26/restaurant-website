@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Confirmed — Warm Vibe Bistro</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f0e8;font-family:'Georgia',serif;">
+
+  <!-- Wrapper -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#1a1816;padding:40px 48px 32px;text-align:center;">
+              <p style="margin:0 0 8px;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#c8572a;">
+                Warm Vibe Bistro
+              </p>
+              <h1 style="margin:0;font-family:'Georgia',serif;font-size:36px;font-weight:normal;color:#fdfaf5;letter-spacing:-0.5px;line-height:1.1;">
+                Order <em style="color:#c8572a;">Confirmed</em>
+              </h1>
+              <p style="margin:16px 0 0;font-size:13px;color:rgba(255,255,255,0.45);letter-spacing:1px;">
+                Thank you for your order
+              </p>
+            </td>
+          </tr>
+
+          <!-- Order number bar -->
+          <tr>
+            <td style="background:#c8572a;padding:14px 48px;text-align:center;">
+              <p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.75);">
+                Order Number
+              </p>
+              <p style="margin:4px 0 0;font-size:22px;font-weight:bold;color:#ffffff;letter-spacing:2px;">
+                #{{ order_number }}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="background:#fdfaf5;padding:40px 48px;">
+
+              <!-- Greeting -->
+              <p style="margin:0 0 24px;font-size:15px;color:#1a1816;line-height:1.7;">
+                Hi <strong>{{ name }}</strong>, your order has been received and confirmed.
+                We'll have it ready for pickup at your selected time.
+              </p>
+
+              <!-- Pickup time box -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                <tr>
+                  <td style="background:#f5f0e8;border-left:3px solid #c8572a;padding:16px 20px;">
+                    <p style="margin:0 0 4px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#c8572a;">
+                      Pickup Time
+                    </p>
+                    <p style="margin:0;font-size:18px;color:#1a1816;font-style:italic;">
+                      {{ pickup_time }}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Order items -->
+              <p style="margin:0 0 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#7a6f62;border-bottom:1px solid #e8dcc8;padding-bottom:10px;">
+                Your Order
+              </p>
+
+              {{ order_items_html }}
+
+              <!-- Totals -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-top:1px solid #e8dcc8;padding-top:16px;">
+                {{ discount_row_html }}
+                <tr>
+                  <td style="padding:8px 0 0;font-size:13px;color:#7a6f62;text-transform:uppercase;letter-spacing:1px;">Total Paid</td>
+                  <td style="padding:8px 0 0;text-align:right;font-size:24px;color:#c8572a;font-weight:bold;">
+                    ₱{{ total }}
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Divider -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin:32px 0;">
+                <tr><td style="border-top:1px solid #e8dcc8;"></td></tr>
+              </table>
+
+              <!-- Pickup instructions -->
+              <p style="margin:0 0 8px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#7a6f62;">
+                Pickup Instructions
+              </p>
+              <p style="margin:0 0 6px;font-size:14px;color:#1a1816;line-height:1.7;">
+                📍 123 Bistro Lane, Makati City, Metro Manila
+              </p>
+              <p style="margin:0 0 6px;font-size:14px;color:#7a6f62;line-height:1.7;">
+                Please bring this email or quote your order number <strong style="color:#1a1816;">#{{ order_number }}</strong> when you arrive.
+              </p>
+              <p style="margin:0;font-size:14px;color:#7a6f62;line-height:1.7;">
+                If you have any questions, reply to this email or call us directly.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#1a1816;padding:28px 48px;text-align:center;">
+              <p style="margin:0 0 6px;font-size:13px;color:rgba(255,255,255,0.5);letter-spacing:1px;">
+                Warm Vibe Bistro · Makati City, Metro Manila
+              </p>
+              <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:0.5px;">
+                © 2024 Warm Vibe Bistro. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

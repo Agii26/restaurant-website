@@ -15,7 +15,7 @@ class ReservationForm(forms.ModelForm):
 
     class Meta:
         model = Reservation
-        fields = ['name', 'email', 'phone', 'date', 'time', 'number_of_guests', 'special_request']
+        fields = ['name', 'email', 'phone', 'date', 'time', 'number_of_guests', 'special_request', 'occasion']
         labels = {
             'name': 'Full Name',
             'email': 'Email Address',
