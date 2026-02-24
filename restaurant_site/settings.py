@@ -100,17 +100,30 @@ DATABASES = {
 # Use REDIS_URL from environment (Render provides this automatically)
 # If not found, fallback to local Redis (Memurai) for development
 
-REDIS_URL = os.environ.get("REDIS_URL")
+# -------------------------------------------------------------------
+# CACHE CONFIGURATION
+# -------------------------------------------------------------------
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URL,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+REDIS_URL = os.environ.get('REDIS_URL')
+
+if REDIS_URL:
+    # Production on Render — Redis
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
         }
     }
-}
+else:
+    # Local development — in-memory (no Redis needed locally)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
 
 
 # -------------------------------------------------------------------
