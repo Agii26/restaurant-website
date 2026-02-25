@@ -164,7 +164,7 @@ def checkout_view(request):
                     payment_method_types=['card'],
                     line_items=[{
                         'price_data': {
-                            'currency': 'php',
+                            'currency': 'usd',
                             'product_data': {
                                 'name': f'Warm Vibe Bistro — Order #{str(order.order_number)[:8].upper()}',
                                 'description': f'Pickup at {order.pickup_time.strftime("%b %d, %Y %I:%M %p")}',

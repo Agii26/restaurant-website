@@ -79,7 +79,7 @@
       {% for item in order.items.all %}
         <div class="item-row">
           <span class="item-name">{{ item.quantity }}× {{ item.name }}</span>
-          <span class="item-price">₱{{ item.item_total }}</span>
+          <span class="item-price">${{ item.item_total }}</span>
         </div>
       {% endfor %}
 
@@ -87,12 +87,12 @@
         {% if order.discount_amount %}
           <div class="total-row discount-row">
             <span>Discount</span>
-            <span>−₱{{ order.discount_amount }}</span>
+            <span>−${{ order.discount_amount }}</span>
           </div>
         {% endif %}
         <div class="total-row grand-total">
           <span>Total Paid</span>
-          <span>₱{{ order.total }}</span>
+          <span>${{ order.total }}</span>
         </div>
       </div>
     </div>
