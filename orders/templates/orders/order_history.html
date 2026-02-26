@@ -3,54 +3,96 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Order History</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Georgia', serif; background: #fafaf8; color: #2c2c2c; }
-    header { text-align: center; padding: 3rem 1rem 1.5rem; border-bottom: 1px solid #e0e0d8; }
-    header h1 { font-size: 2.2rem; font-weight: normal; }
-    .container { max-width: 700px; margin: 2.5rem auto; padding: 0 1.5rem 4rem; }
-    .back { display: inline-block; margin-bottom: 1.5rem; font-size: 0.9rem; color: #888; text-decoration: none; }
-    .order-card { background: #fff; border: 1px solid #e0e0d8; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
-    .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid #e8e8e0; }
-    .order-num { font-size: 0.85rem; color: #888; }
-    .order-date { font-size: 0.85rem; color: #aaa; }
-    .status { font-size: 0.8rem; padding: 0.2rem 0.7rem; border-radius: 12px; }
-    .status-pending { background: #fef9ec; color: #7a6020; }
-    .status-confirmed { background: #e8f5e9; color: #2e7d32; }
-    .status-preparing { background: #e3f2fd; color: #1565c0; }
-    .status-ready { background: #f3e5f5; color: #6a1b9a; }
-    .status-completed { background: #e8f5e9; color: #2e7d32; }
-    .status-cancelled { background: #fdecea; color: #c0392b; }
-    .order-item { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.3rem 0; color: #555; }
-    .order-total { display: flex; justify-content: space-between; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid #e8e8e0; font-size: 1rem; }
-    .empty { text-align: center; color: #aaa; padding: 4rem 0; }
-  </style>
+  <title>Order History — Warm Vibe Bistro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/order_history.css' %}">
 </head>
 <body>
-<header><h1>Your Orders</h1></header>
+
+<!-- NAV -->
+<nav class="site-nav">
+  <a href="/" class="nav-logo">Warm Vibe Bistro</a>
+  <div class="nav-links">
+    <a href="{% url 'menu:menu' %}">Menu</a>
+    <a href="{% url 'reservations:reservation' %}">Reservations</a>
+    <a href="{% url 'orders:cart' %}" class="nav-cta">Cart</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="header-eyebrow">Your Account</div>
+  <h1>Order <em>History</em></h1>
+</div>
+
 <div class="container">
   <a href="{% url 'menu:menu' %}" class="back">← Back to Menu</a>
+  <!-- Email lookup form -->
+<div class="lookup-card">
+  <div class="section-label">Find Your Orders</div>
+  <p class="lookup-sub">Enter the email address you used when placing your order.</p>
+  <form method="GET" class="lookup-form">
+    <input
+      type="email"
+      name="email"
+      placeholder="your@email.com"
+      value="{{ email_query }}"
+      required
+    >
+    <button type="submit">Look Up →</button>
+  </form>
+</div>
 
   {% if orders %}
-    {% for order in orders %}
-      <div class="order-card">
-        <div class="order-header">
-          <div>
-            <div class="order-num">Order #{{ order.order_number|stringformat:"s"|slice:":8"|upper }}</div>
-            <div class="order-date">{{ order.created_at|date:"F j, Y — g:i A" }}</div>
+    <div class="orders-list">
+      {% for order in orders %}
+        <div class="order-card">
+
+          <!-- Card Header -->
+          <div class="order-card-header">
+            <div class="order-meta">
+              <span class="order-number">#{{ order.order_number|stringformat:"s"|slice:":8"|upper }}</span>
+              <span class="order-date">{{ order.created_at|date:"F j, Y — g:i A" }}</span>
+            </div>
+            <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
           </div>
-          <span class="status status-{{ order.status }}">{{ order.get_status_display }}</span>
+
+          <!-- Items -->
+          <div class="order-items">
+            <div class="section-label">Items Ordered</div>
+            {% for item in order.items.all %}
+              <div class="order-item">
+                <span class="item-name">{{ item.quantity }}× {{ item.name }}</span>
+                <span class="item-price">${{ item.item_total }}</span>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Footer -->
+          <div class="order-card-footer">
+            <div class="pickup-info">
+              <span class="pickup-label">Pickup</span>
+              <span class="pickup-time">{{ order.pickup_time|date:"M j, Y" }} at {{ order.pickup_time|time:"g:i A" }}</span>
+            </div>
+            <div class="order-total">
+              <span class="total-label">Total</span>
+              <span class="total-amount">${{ order.total }}</span>
+            </div>
+          </div>
+
         </div>
-        {% for item in order.items.all %}
-          <div class="order-item"><span>{{ item.quantity }}× {{ item.name }}</span><span>${{ item.item_total }}</span></div>
-        {% endfor %}
-        <div class="order-total"><strong>Total</strong><strong>${{ order.total }}</strong></div>
-      </div>
-    {% endfor %}
+      {% endfor %}
+    </div>
+
   {% else %}
-    <p class="empty">No orders yet. <a href="{% url 'menu:menu' %}">Start ordering!</a></p>
+    <div class="empty-state">
+      <p class="empty-title">No orders yet</p>
+      <p class="empty-sub">Your order history will appear here once you've placed an order.</p>
+      <a href="{% url 'menu:menu' %}" class="btn-order">Browse the Menu →</a>
+    </div>
   {% endif %}
 </div>
+
 </body>
 </html>

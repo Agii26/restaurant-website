@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Dashboard{% endblock %} — Warm Vibe Bistro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="dashboard-body">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-brand">
+      <span class="brand-icon">WV</span>
+      <div class="brand-text">
+        <span class="brand-name">Warm Vibe</span>
+        <span class="brand-sub">Bistro Admin</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" title="Collapse sidebar">&#8249;</button>
+    </div>
+
+    <div class="sidebar-staff">
+      <div class="staff-avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+      <div class="staff-info">
+        <span class="staff-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+        <span class="staff-role">{{ request.user.staff_profile.get_role_display }}</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+
+      <a href="{% url 'dashboard:home' %}" class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+        <span class="nav-icon">⊞</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a href="#" class="nav-item {% if 'orders' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">🧾</span>
+        <span class="nav-label">Orders</span>
+        {% if pending_orders %}<span class="nav-badge">{{ pending_orders }}</span>{% endif %}
+      </a>
+
+      <a href="#" class="nav-item {% if 'reservations' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Reservations</span>
+        {% if pending_reservations %}<span class="nav-badge">{{ pending_reservations }}</span>{% endif %}
+      </a>
+
+      <div class="nav-section-label">Management</div>
+
+      <a href="#" class="nav-item">
+        <span class="nav-icon">🍽️</span>
+        <span class="nav-label">Menu</span>
+      </a>
+
+      <a href="#" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Customers</span>
+      </a>
+
+      <a href="#" class="nav-item">
+        <span class="nav-icon">💳</span>
+        <span class="nav-label">Payments</span>
+      </a>
+
+      {% if request.user.staff_profile.can_manage_staff %}
+        <div class="nav-section-label">Admin</div>
+        <a href="#" class="nav-item">
+          <span class="nav-icon">🔑</span>
+          <span class="nav-label">Staff</span>
+        </a>
+      {% endif %}
+
+      <div class="nav-section-label">Account</div>
+
+      <a href="{% url 'dashboard:logout' %}" class="nav-item nav-item-danger">
+        <span class="nav-icon">↩</span>
+        <span class="nav-label">Log Out</span>
+      </a>
+    </nav>
+
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <div class="dashboard-main" id="dashboardMain">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-toggle" id="topbarToggle">☰</button>
+        <div class="breadcrumb">
+          <span>{% block breadcrumb %}Dashboard{% endblock %}</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-date" id="topbarDate"></span>
+        <a href="/" target="_blank" class="topbar-site-link">View Site →</a>
+      </div>
+    </header>
+
+    <!-- Messages -->
+    {% if messages %}
+      <div class="dashboard-messages">
+        {% for message in messages %}
+          <div class="dash-msg dash-msg-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Page content -->
+    <main class="dashboard-content">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+
+  <script>
+    // ── Sidebar toggle ──
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('dashboardMain');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const topbarToggle = document.getElementById('topbarToggle');
+
+    // Load saved state
+    const collapsed = localStorage.getItem('sidebar_collapsed') === 'true';
+    if (collapsed) {
+      sidebar.classList.add('collapsed');
+      main.classList.add('sidebar-collapsed');
+    }
+
+    function toggleSidebar() {
+      sidebar.classList.toggle('collapsed');
+      main.classList.toggle('sidebar-collapsed');
+      localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed'));
+    }
+
+    toggleBtn.addEventListener('click', toggleSidebar);
+    topbarToggle.addEventListener('click', toggleSidebar);
+
+    // ── Live clock ──
+    function updateDate() {
+      const now = new Date();
+      const opts = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      document.getElementById('topbarDate').textContent = now.toLocaleDateString('en-US', opts);
+    }
+    updateDate();
+    setInterval(updateDate, 60000);
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

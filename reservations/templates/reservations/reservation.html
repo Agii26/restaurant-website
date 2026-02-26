@@ -6,6 +6,7 @@
   <title>Reserve a Table — Warm Vibe Bistro</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   {% load static %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="{% static 'css/reservation.css' %}">
 </head>
 <body>
@@ -246,7 +247,9 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
+  // ── Guest count toggle ──
   const radios = document.querySelectorAll('input[name="number_of_guests"]');
   const instant = document.getElementById('approvalInstant');
   const manual = document.getElementById('approvalManual');
@@ -258,14 +261,28 @@
     instant.style.display = val <= 4 ? 'block' : 'none';
     manual.style.display = val >= 5 ? 'block' : 'none';
   }
-
   radios.forEach(r => r.addEventListener('change', updateNotice));
   updateNotice();
 
-  const dateInput = document.querySelector('input[type="date"]');
-  if (dateInput && !dateInput.value) {
-    dateInput.min = new Date().toISOString().split('T')[0];
-  }
+  // ── Flatpickr calendar ──
+  flatpickr('input[type="date"]', {
+    minDate: 'today',
+    disableMobile: false,
+    dateFormat: 'Y-m-d',
+    locale: {
+      firstDayOfWeek: 0,
+    },
+    disable: [
+      function(date) {
+        // Disable no days — open 7 days
+        // To close specific days: return date.getDay() === 1; (1 = Monday)
+        return false;
+      }
+    ],
+    onReady: function(selectedDates, dateStr, instance) {
+      instance.calendarContainer.classList.add('wvb-calendar');
+    },
+  });
 </script>
 
 </body>

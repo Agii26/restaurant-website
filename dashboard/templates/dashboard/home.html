@@ -1,0 +1,182 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Home{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── STAT CARDS ── -->
+<div class="stat-grid">
+
+  <div class="stat-card stat-primary">
+    <div class="stat-label">Today's Revenue</div>
+    <div class="stat-value">${{ today_revenue|floatformat:2 }}</div>
+    <div class="stat-sub">{{ today_count }} order{{ today_count|pluralize }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">This Week</div>
+    <div class="stat-value">${{ week_revenue|floatformat:2 }}</div>
+    <div class="stat-sub">{{ week_count }} order{{ week_count|pluralize }}</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">This Month</div>
+    <div class="stat-value">${{ month_revenue|floatformat:2 }}</div>
+    <div class="stat-sub">{{ month_count }} order{{ month_count|pluralize }}</div>
+  </div>
+
+  <div class="stat-card stat-alert">
+    <div class="stat-label">Needs Attention</div>
+    <div class="stat-value">{{ pending_orders }}</div>
+    <div class="stat-sub">pending order{{ pending_orders|pluralize }}</div>
+  </div>
+
+  <div class="stat-card stat-warn">
+    <div class="stat-label">Reservations</div>
+    <div class="stat-value">{{ pending_reservations }}</div>
+    <div class="stat-sub">awaiting approval</div>
+  </div>
+
+</div>
+
+<!-- ── CHART + TODAY'S RESERVATIONS ── -->
+<div class="dash-grid-2">
+
+  <!-- Revenue chart -->
+  <div class="dash-card">
+    <div class="dash-card-header">
+      <span class="dash-card-title">Revenue — Last 7 Days</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="revenueChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Today's reservations -->
+  <div class="dash-card">
+    <div class="dash-card-header">
+      <span class="dash-card-title">Today's Reservations</span>
+      <a href="#" class="dash-card-link">View all →</a>
+    </div>
+    {% if today_reservations %}
+      <div class="res-list">
+        {% for res in today_reservations %}
+          <div class="res-item">
+            <div class="res-info">
+              <span class="res-name">{{ res.name }}</span>
+              <span class="res-details">{{ res.number_of_guests }} guests · {{ res.time|time:"g:i A" }}</span>
+            </div>
+            <span class="res-status status-{{ res.status }}">{{ res.get_status_display }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="dash-empty">No reservations today.</div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- ── RECENT ORDERS ── -->
+<div class="dash-card">
+  <div class="dash-card-header">
+    <span class="dash-card-title">Recent Orders</span>
+    <a href="#" class="dash-card-link">View all →</a>
+  </div>
+
+  {% if recent_orders %}
+    <div class="orders-table-wrap">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Pickup</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in recent_orders %}
+            <tr>
+              <td class="order-num-cell">#{{ order.order_number|stringformat:"s"|slice:":8"|upper }}</td>
+              <td>
+                <div class="customer-cell">
+                  <span class="customer-name">{{ order.name }}</span>
+                  <span class="customer-email">{{ order.email }}</span>
+                </div>
+              </td>
+              <td class="items-cell">{{ order.items.count }} item{{ order.items.count|pluralize }}</td>
+              <td class="total-cell">${{ order.total }}</td>
+              <td class="pickup-cell">{{ order.pickup_time|date:"M j" }} {{ order.pickup_time|time:"g:i A" }}</td>
+              <td><span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="dash-empty">No orders yet today.</div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const ctx = document.getElementById('revenueChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: {{ chart_labels|safe }},
+      datasets: [{
+        label: 'Revenue ($)',
+        data: {{ chart_data|safe }},
+        backgroundColor: 'rgba(200, 87, 42, 0.7)',
+        borderColor: '#c8572a',
+        borderWidth: 2,
+        borderRadius: 0,
+        hoverBackgroundColor: 'rgba(200, 87, 42, 0.9)',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1816',
+          titleColor: '#e8dcc8',
+          bodyColor: '#fdfaf5',
+          padding: 10,
+          callbacks: {
+            label: ctx => ' $' + ctx.parsed.y.toFixed(2)
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(232,220,200,0.15)' },
+          ticks: { color: '#7a6f62', font: { family: 'DM Sans', size: 11 } }
+        },
+        y: {
+          grid: { color: 'rgba(232,220,200,0.15)' },
+          ticks: {
+            color: '#7a6f62',
+            font: { family: 'DM Sans', size: 11 },
+            callback: v => '$' + v
+          },
+          beginAtZero: true,
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

@@ -114,7 +114,7 @@
 
       <div class="actions">
         <a href="{% url 'menu:menu' %}" class="btn-primary">Order Again →</a>
-        <a href="{% url 'orders:order_history' %}" class="btn-ghost">View Order History</a>
+        <a href="{% url 'orders:order_history' %}?email={{ order.email }}" class="btn-ghost">View Order History</a>
       </div>
     </div>
 

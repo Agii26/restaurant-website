@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'menu',
     'reservations',
     'orders',
+    'dashboard',
 
     # Third-party apps
     'django_ratelimit',
