@@ -39,7 +39,7 @@
         <span class="nav-label">Dashboard</span>
       </a>
 
-      <a href="#" class="nav-item {% if 'orders' in request.resolver_match.url_name %}active{% endif %}">
+      <a href="{% url 'dashboard:orders_list' %}" class="nav-item {% if 'orders' in request.resolver_match.url_name %}active{% endif %}">
         <span class="nav-icon">🧾</span>
         <span class="nav-label">Orders</span>
         {% if pending_orders %}<span class="nav-badge">{{ pending_orders }}</span>{% endif %}

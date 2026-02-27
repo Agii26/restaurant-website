@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Receipt — #{{ order.order_number|stringformat:"s"|slice:":8"|upper }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Courier New', monospace; font-size: 13px; color: #1a1816; background: white; padding: 2rem; max-width: 380px; margin: 0 auto; }
+    .receipt-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px dashed #ccc; }
+    .restaurant-name { font-size: 1.4rem; font-weight: bold; letter-spacing: 0.1em; margin-bottom: 0.2rem; }
+    .restaurant-sub { font-size: 0.75rem; color: #666; }
+    .receipt-section { margin-bottom: 1rem; }
+    .receipt-row { display: flex; justify-content: space-between; padding: 0.2rem 0; }
+    .receipt-label { color: #666; }
+    .divider { border: none; border-top: 1px dashed #ccc; margin: 0.8rem 0; }
+    .item-row { display: flex; justify-content: space-between; padding: 0.3rem 0; }
+    .item-name { flex: 1; }
+    .item-qty { color: #666; margin-right: 0.5rem; }
+    .total-row { display: flex; justify-content: space-between; padding: 0.4rem 0; font-weight: bold; font-size: 1.1rem; border-top: 2px solid #1a1816; margin-top: 0.5rem; }
+    .discount-row { display: flex; justify-content: space-between; padding: 0.2rem 0; color: #4a7c59; }
+    .receipt-footer { text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 2px dashed #ccc; font-size: 0.75rem; color: #888; }
+    .order-num { font-size: 1.1rem; font-weight: bold; letter-spacing: 0.1em; }
+    .status-badge { display: inline-block; padding: 0.2rem 0.6rem; background: #e8f5e9; color: #2e7d32; font-size: 0.75rem; margin-top: 0.3rem; }
+    @media print {
+      body { padding: 0; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print" style="margin-bottom:1rem;text-align:right;">
+    <button onclick="window.print()" style="padding:0.5rem 1.2rem;background:#c8572a;color:white;border:none;cursor:pointer;font-size:0.85rem;">🖨 Print</button>
+    <button onclick="window.close()" style="padding:0.5rem 1.2rem;background:#eee;color:#333;border:none;cursor:pointer;font-size:0.85rem;margin-left:0.5rem;">Close</button>
+  </div>
+
+  <div class="receipt-header">
+    <div class="restaurant-name">WARM VIBE BISTRO</div>
+    <div class="restaurant-sub">123 Bistro Lane, Makati City</div>
+    <div class="restaurant-sub">xhide26x@gmail.com</div>
+    <br>
+    <div class="order-num">#{{ order.order_number|stringformat:"s"|slice:":8"|upper }}</div>
+    <div class="status-badge">{{ order.get_status_display }}</div>
+  </div>
+
+  <div class="receipt-section">
+    <div class="receipt-row">
+      <span class="receipt-label">Customer</span>
+      <span>{{ order.name }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Email</span>
+      <span>{{ order.email }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Phone</span>
+      <span>{{ order.phone }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Pickup</span>
+      <span>{{ order.pickup_time|date:"M j, Y" }} {{ order.pickup_time|time:"g:i A" }}</span>
+    </div>
+    <div class="receipt-row">
+      <span class="receipt-label">Ordered</span>
+      <span>{{ order.created_at|date:"M j, Y g:i A" }}</span>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="receipt-section">
+    {% for item in order.items.all %}
+      <div class="item-row">
+        <span class="item-qty">{{ item.quantity }}x</span>
+        <span class="item-name">{{ item.name }}</span>
+        <span>${{ item.item_total }}</span>
+      </div>
+      {% if item.addons %}
+        <div style="padding-left:2rem;font-size:0.75rem;color:#888;">+ {{ item.addons }}</div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <hr class="divider">
+
+  {% if order.discount_amount %}
+    <div class="discount-row">
+      <span>Discount ({{ order.promo_code }})</span>
+      <span>−${{ order.discount_amount }}</span>
+    </div>
+  {% endif %}
+
+  <div class="total-row">
+    <span>TOTAL PAID</span>
+    <span>${{ order.total }}</span>
+  </div>
+
+  {% if order.order_notes %}
+    <hr class="divider">
+    <div class="receipt-section">
+      <div class="receipt-label">Notes:</div>
+      <div>{{ order.order_notes }}</div>
+    </div>
+  {% endif %}
+
+  <div class="receipt-footer">
+    <p>Payment confirmed via Stripe</p>
+    <br>
+    <p>Thank you for dining with us!</p>
+    <p>Warm Vibe Bistro</p>
+  </div>
+
+</body>
+</html>
