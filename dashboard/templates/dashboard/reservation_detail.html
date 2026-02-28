@@ -1,0 +1,144 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Reservation — {{ reservation.name }}{% endblock %}
+{% block breadcrumb %}Reservations / {{ reservation.name }}{% endblock %}
+
+{% block content %}
+
+<!-- ── HEADER ── -->
+<div class="detail-header">
+  <div class="detail-header-left">
+    <a href="{% url 'dashboard:reservations_list' %}" class="back-link">← Back to Reservations</a>
+    <h2 class="detail-title">{{ reservation.name }}'s <span>Reservation</span></h2>
+    <span class="detail-date">Booked {{ reservation.created_at|date:"F j, Y" }} at {{ reservation.created_at|time:"g:i A" }}</span>
+  </div>
+  <div class="detail-header-right">
+    <span class="status-pill status-{{ reservation.status }} status-lg">{{ reservation.get_status_display }}</span>
+  </div>
+</div>
+
+<!-- ── ACTION BUTTONS ── -->
+{% if reservation.status == 'pending' %}
+  <div class="dash-card" style="margin-bottom:1rem;">
+    <div class="status-actions" style="padding:1.2rem 1.5rem;">
+      <div style="font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-right:0.5rem;">Action Required:</div>
+      <form method="POST" action="{% url 'dashboard:reservation_approve' reservation.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-advance">✓ Approve Reservation</button>
+      </form>
+      <form method="POST" action="{% url 'dashboard:reservation_reject' reservation.id %}"
+            onsubmit="return confirm('Reject this reservation?')">
+        {% csrf_token %}
+        <button type="submit" class="btn-cancel-order">✕ Reject</button>
+      </form>
+    </div>
+  </div>
+{% elif reservation.status == 'confirmed' %}
+  <div class="dash-card" style="margin-bottom:1rem;">
+    <div class="status-actions" style="padding:1.2rem 1.5rem;">
+      <form method="POST" action="{% url 'dashboard:reservation_cancel' reservation.id %}"
+            onsubmit="return confirm('Cancel this reservation?')">
+        {% csrf_token %}
+        <button type="submit" class="btn-cancel-order">Cancel Reservation</button>
+      </form>
+    </div>
+  </div>
+{% endif %}
+
+<!-- ── DETAIL GRID ── -->
+<div class="detail-grid">
+
+  <!-- Left: Reservation details -->
+  <div style="display:flex;flex-direction:column;gap:1rem;">
+
+    <!-- Guest info -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <span class="dash-card-title">Guest Information</span>
+      </div>
+      <div class="info-rows">
+        <div class="info-row">
+          <span class="info-label">Name</span>
+          <span class="info-value">{{ reservation.name }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Email</span>
+          <span class="info-value">
+            <a href="mailto:{{ reservation.email }}" class="info-link">{{ reservation.email }}</a>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Phone</span>
+          <span class="info-value">
+            <a href="tel:{{ reservation.phone }}" class="info-link">{{ reservation.phone }}</a>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Party Size</span>
+          <span class="info-value" style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--burnt);">
+            {{ reservation.number_of_guests }} guest{{ reservation.number_of_guests|pluralize }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking details -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <span class="dash-card-title">Booking Details</span>
+      </div>
+      <div class="info-rows">
+        <div class="info-row">
+          <span class="info-label">Date</span>
+          <span class="info-value">{{ reservation.date|date:"F j, Y" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Time</span>
+          <span class="info-value pickup-time-highlight">{{ reservation.time|time:"g:i A" }}</span>
+        </div>
+        {% if reservation.occasion %}
+          <div class="info-row">
+            <span class="info-label">Occasion</span>
+            <span class="info-value">{{ reservation.occasion }}</span>
+          </div>
+        {% endif %}
+        {% if reservation.special_requests %}
+          <div class="info-row">
+            <span class="info-label">Requests</span>
+            <span class="info-value">{{ reservation.special_requests }}</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right: Staff note -->
+  <div class="dash-card">
+    <div class="dash-card-header">
+      <span class="dash-card-title">Internal Staff Note</span>
+    </div>
+    <div style="padding:1.2rem;">
+      {% if reservation.staff_note %}
+        <div class="staff-note-display">{{ reservation.staff_note }}</div>
+      {% else %}
+        <div class="dash-empty" style="padding:1rem 0;text-align:left;">No note added yet.</div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'dashboard:reservation_add_note' reservation.id %}" style="margin-top:1rem;">
+        {% csrf_token %}
+        <textarea
+          name="staff_note"
+          rows="4"
+          placeholder="Add a note for staff (e.g. VIP guest, window seat requested, birthday cake arranged...)"
+          class="note-textarea"
+        >{{ reservation.staff_note|default:'' }}</textarea>
+        <button type="submit" class="filter-btn" style="margin-top:0.6rem;width:100%;">Save Note</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

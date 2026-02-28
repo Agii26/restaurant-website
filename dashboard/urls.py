@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import orders_views
+from . import reservations_views
 
 app_name = 'dashboard'
 
@@ -16,4 +17,12 @@ urlpatterns = [
     path('orders/<int:order_id>/status/', orders_views.order_update_status, name='order_update_status'),
     path('orders/<int:order_id>/cancel/', orders_views.order_cancel, name='order_cancel'),
     path('orders/<int:order_id>/print/', orders_views.order_print, name='order_print'),
+
+    # ── Reservations ──
+    path('reservations/', reservations_views.reservations_list, name='reservations_list'),
+    path('reservations/<int:reservation_id>/', reservations_views.reservation_detail, name='reservation_detail'),
+    path('reservations/<int:reservation_id>/approve/', reservations_views.reservation_approve, name='reservation_approve'),
+    path('reservations/<int:reservation_id>/reject/', reservations_views.reservation_reject, name='reservation_reject'),
+    path('reservations/<int:reservation_id>/cancel/', reservations_views.reservation_cancel, name='reservation_cancel'),
+    path('reservations/<int:reservation_id>/note/', reservations_views.reservation_add_note, name='reservation_add_note'),
 ]

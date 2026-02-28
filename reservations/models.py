@@ -49,3 +49,6 @@ class Reservation(models.Model):
             else:
                 self.status = 'pending'
         super().save(*args, **kwargs)
+    
+    staff_note = models.TextField(blank=True, default='')
+
