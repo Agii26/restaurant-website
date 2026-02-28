@@ -93,6 +93,22 @@
 
 <div class="container">
   <a href="{% url 'orders:cart' %}" class="back">← Back to cart</a>
+  
+  {% if messages %}
+    <div style="margin-bottom:1.5rem;">
+      {% for message in messages %}
+        <div style="
+          padding: 0.9rem 1.2rem;
+          border-left: 3px solid {% if message.tags == 'error' %}var(--error){% else %}var(--burnt){% endif %};
+          background: {% if message.tags == 'error' %}#fdf0f0{% else %}var(--sand-light){% endif %};
+          font-size: 0.85rem;
+          color: {% if message.tags == 'error' %}var(--error){% else %}var(--charcoal){% endif %};
+          margin-bottom: 0.5rem;
+          line-height: 1.6;
+        ">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
   <div class="checkout-layout">
     <div>

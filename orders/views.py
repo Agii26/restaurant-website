@@ -1,3 +1,5 @@
+import email
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
@@ -8,6 +10,7 @@ from decimal import Decimal
 from django_ratelimit.decorators import ratelimit
 import stripe
 
+from dashboard.models import BlockedCustomer
 from menu.models import MenuItem
 from .cart import Cart
 from .models import Order, OrderItem, PromoCode
@@ -138,6 +141,13 @@ def checkout_view(request):
 
         form = CheckoutForm(request.POST)
         if form.is_valid():
+            email = form.cleaned_data['email']  # ← email is now defined
+
+            # ── Blocked customer check ──
+            if BlockedCustomer.objects.filter(email__iexact=email).exists():
+                messages.error(request, 'Unable to process your order.')
+                return redirect('orders:checkout')
+            
             order = form.save(commit=False)
             order.user = request.user if request.user.is_authenticated else None
             order.subtotal = subtotal

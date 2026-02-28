@@ -3,6 +3,7 @@ from . import views
 from . import orders_views
 from . import reservations_views
 from . import menu_views
+from . import customer_views
 
 app_name = 'dashboard'
 
@@ -36,4 +37,10 @@ urlpatterns = [
     path('menu/import/', menu_views.menu_csv_import, name='menu_csv_import'),
     path('menu/import/template/', menu_views.menu_csv_template, name='menu_csv_template'),
     path('menu/categories/', menu_views.categories_list, name='categories_list'),
+
+    # ── Customers ──
+    path('customers/', customer_views.customers_list, name='customers_list'),
+    path('customers/<str:email>/', customer_views.customer_detail, name='customer_detail'),
+    path('customers/<str:email>/block/', customer_views.customer_block, name='customer_block'),
+    path('customers/<str:email>/unblock/', customer_views.customer_unblock, name='customer_unblock'),
 ]

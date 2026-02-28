@@ -248,7 +248,7 @@ def menu_csv_import(request):
                             if ':' in addon_str:
                                 addon_name, addon_price = addon_str.split(':', 1)
                                 AddOn.objects.get_or_create(
-                                    menu_item=item,
+                                    dish=item,
                                     name__iexact=addon_name.strip(),
                                     defaults={'name': addon_name.strip(), 'price': addon_price.strip()}
                                 )

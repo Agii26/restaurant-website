@@ -1,0 +1,120 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Customers{% endblock %}
+{% block breadcrumb %}Customers{% endblock %}
+
+{% block content %}
+
+<!-- ── TOP STATS ── -->
+<div class="stat-grid" style="margin-bottom:1.5rem;">
+  <div class="stat-card stat-primary">
+    <div class="stat-label">Total Customers</div>
+    <div class="stat-value">{{ total_customers }}</div>
+    <div class="stat-sub">unique emails</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Revenue</div>
+    <div class="stat-value">${{ total_revenue|floatformat:2 }}</div>
+    <div class="stat-sub">all time</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Repeat Customers</div>
+    <div class="stat-value">{{ repeat_customers }}</div>
+    <div class="stat-sub">2+ orders</div>
+  </div>
+</div>
+
+<!-- ── MAIN CARD ── -->
+<div class="dash-card">
+  <div class="dash-card-header">
+    <span class="dash-card-title">All Customers</span>
+    <span class="dash-card-title" style="color:var(--mid);font-size:0.68rem;">{{ paginator.count }} total</span>
+  </div>
+
+  <!-- Search + Sort -->
+  <div class="filter-bar">
+    <form method="GET" class="filter-form">
+      <input type="text" name="search" placeholder="Search name or email..." value="{{ search }}" class="filter-input">
+      <select name="sort" class="filter-input filter-select">
+        <option value="-last_order"  {% if sort == '-last_order' %}selected{% endif %}>Most Recent</option>
+        <option value="-total_spent" {% if sort == '-total_spent' %}selected{% endif %}>Highest Spend</option>
+        <option value="-order_count" {% if sort == '-order_count' %}selected{% endif %}>Most Orders</option>
+        <option value="name"         {% if sort == 'name' %}selected{% endif %}>Name A–Z</option>
+      </select>
+      <button type="submit" class="filter-btn">Search</button>
+      {% if search %}
+        <a href="{% url 'dashboard:customers_list' %}" class="filter-clear">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Table -->
+  {% if customers %}
+    <div class="orders-table-wrap">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Orders</th>
+            <th>Total Spent</th>
+            <th>Last Order</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for customer in customers %}
+            <tr>
+              <td>
+                <div class="customer-cell">
+                  <span class="customer-name">{{ customer.name }}</span>
+                  <span class="customer-email">{{ customer.email }}</span>
+                </div>
+              </td>
+              <td class="items-cell">{{ customer.phone|default:"—" }}</td>
+              <td class="items-cell">
+                <span style="font-weight:500;color:var(--charcoal);">{{ customer.order_count }}</span>
+                {% if customer.order_count > 1 %}
+                  <span style="font-size:0.65rem;color:var(--burnt);margin-left:0.3rem;">Repeat</span>
+                {% endif %}
+              </td>
+              <td class="total-cell">${{ customer.total_spent|floatformat:2 }}</td>
+              <td class="pickup-cell">{{ customer.last_order|date:"M j, Y" }}</td>
+              <td>
+                <a href="{% url 'dashboard:customer_detail' customer.email %}" class="tbl-btn">View →</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if customers.has_other_pages %}
+      <div class="pagination-bar">
+        {% if customers.has_previous %}
+          <a href="?page={{ customers.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}" class="page-btn">← Prev</a>
+        {% else %}
+          <span class="page-btn page-btn-disabled">← Prev</span>
+        {% endif %}
+
+        <div class="page-info">
+          Page {{ customers.number }} of {{ customers.paginator.num_pages }}
+        </div>
+
+        {% if customers.has_next %}
+          <a href="?page={{ customers.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}" class="page-btn">Next →</a>
+        {% else %}
+          <span class="page-btn page-btn-disabled">Next →</span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="dash-empty">No customers found{% if search %} for "{{ search }}"{% endif %}.</div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

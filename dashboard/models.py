@@ -18,7 +18,6 @@ class StaffProfile(models.Model):
     def __str__(self):
         return f'{self.user.get_full_name() or self.user.username} ({self.get_role_display()})'
 
-    # ── Permission helpers ──
     @property
     def is_owner(self):
         return self.role == 'owner'
@@ -38,3 +37,19 @@ class StaffProfile(models.Model):
     @property
     def can_view_payments(self):
         return self.role in ('owner', 'manager')
+
+
+class BlockedCustomer(models.Model):
+    email = models.EmailField(unique=True)
+    reason = models.TextField(blank=True)
+    blocked_at = models.DateTimeField(auto_now_add=True)
+    blocked_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='blocked_customers'
+    )
+
+    def __str__(self):
+        return f'Blocked: {self.email}'
+
+    class Meta:
+        ordering = ['-blocked_at']
