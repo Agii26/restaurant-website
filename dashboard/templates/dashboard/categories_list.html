@@ -1,0 +1,81 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Categories{% endblock %}
+{% block breadcrumb %}Menu / Categories{% endblock %}
+
+{% block content %}
+
+<div class="detail-header">
+  <div class="detail-header-left">
+    <a href="{% url 'dashboard:menu_list' %}" class="back-link">← Back to Menu</a>
+    <h2 class="detail-title">Manage <span>Categories</span></h2>
+  </div>
+</div>
+
+<div class="detail-grid">
+
+  <!-- Left: Category list -->
+  <div class="dash-card">
+    <div class="dash-card-header">
+      <span class="dash-card-title">All Categories</span>
+      <span class="dash-card-title" style="color:var(--mid);font-size:0.68rem;">{{ categories|length }} total</span>
+    </div>
+
+    {% if categories %}
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Order</th>
+            <th>Items</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in categories %}
+            <tr>
+              <td class="customer-name">{{ cat.name }}</td>
+              <td class="items-cell">{{ cat.order }}</td>
+              <td class="items-cell">{{ cat.menuitem_set.count }} item{{ cat.menuitem_set.count|pluralize }}</td>
+              <td>
+                <form method="POST" onsubmit="return confirm('Delete {{ cat.name }}?')">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="category_id" value="{{ cat.id }}">
+                  <button type="submit" class="tbl-btn-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="dash-empty">No categories yet.</div>
+    {% endif %}
+  </div>
+
+  <!-- Right: Add category form -->
+  <div class="dash-card">
+    <div class="dash-card-header"><span class="dash-card-title">Add Category</span></div>
+    <div class="form-body">
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add">
+        <div class="form-field">
+          <label class="form-label">Category Name *</label>
+          <input type="text" name="name" placeholder="e.g. Mains, Starters, Drinks..." class="form-input" required>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Display Order</label>
+          <input type="number" name="order" value="0" min="0" class="form-input">
+          <span style="font-size:0.72rem;color:var(--mid);">Lower numbers appear first</span>
+        </div>
+        <button type="submit" class="btn-advance" style="width:100%;margin-top:0.5rem;">Add Category →</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

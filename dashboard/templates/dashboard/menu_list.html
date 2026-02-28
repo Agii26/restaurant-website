@@ -1,0 +1,141 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Menu Management{% endblock %}
+{% block breadcrumb %}Menu{% endblock %}
+
+{% block content %}
+
+<!-- ── TOP STATS ── -->
+<div class="stat-grid" style="margin-bottom:1.5rem;">
+  <div class="stat-card stat-primary">
+    <div class="stat-label">Total Items</div>
+    <div class="stat-value">{{ total_items }}</div>
+    <div class="stat-sub">on the menu</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Available</div>
+    <div class="stat-value">{{ available_items }}</div>
+    <div class="stat-sub">visible to customers</div>
+  </div>
+  <div class="stat-card stat-alert">
+    <div class="stat-label">Hidden</div>
+    <div class="stat-value">{{ hidden_items }}</div>
+    <div class="stat-sub">not shown on menu</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Categories</div>
+    <div class="stat-value">{{ categories|length }}</div>
+    <div class="stat-sub"><a href="{% url 'dashboard:categories_list' %}" style="color:var(--burnt);text-decoration:none;">Manage →</a></div>
+  </div>
+</div>
+
+<!-- ── ACTION BAR ── -->
+<div class="action-bar">
+  <div class="action-bar-left">
+    <a href="{% url 'dashboard:menu_item_add' %}" class="btn-advance">+ Add Item</a>
+    <a href="{% url 'dashboard:menu_csv_import' %}" class="btn-outline">⬆ CSV Import</a>
+    <a href="{% url 'dashboard:menu_csv_template' %}" class="btn-outline">⬇ Download Template</a>
+  </div>
+</div>
+
+<!-- ── MAIN CARD ── -->
+<div class="dash-card">
+  <div class="dash-card-header">
+    <span class="dash-card-title">All Menu Items</span>
+    <span class="dash-card-title" style="color:var(--mid);font-size:0.68rem;">{{ items|length }} result{{ items|length|pluralize }}</span>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <form method="GET" class="filter-form">
+      <input type="text" name="search" placeholder="Search items..." value="{{ search }}" class="filter-input">
+      <select name="category" class="filter-input filter-select">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if category_filter == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+      <select name="available" class="filter-input filter-select" style="min-width:0;flex:0 0 auto;">
+        <option value="">All</option>
+        <option value="1" {% if availability_filter == '1' %}selected{% endif %}>Available</option>
+        <option value="0" {% if availability_filter == '0' %}selected{% endif %}>Hidden</option>
+      </select>
+      <button type="submit" class="filter-btn">Filter</button>
+      {% if search or category_filter or availability_filter %}
+        <a href="{% url 'dashboard:menu_list' %}" class="filter-clear">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if items %}
+    <div class="orders-table-wrap">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th style="width:50px;">Item</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Tags</th>
+            <th>Add-ons</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr class="{% if not item.is_available %}row-hidden{% endif %}">
+              <td>
+                <div class="menu-item-cell">
+                  {% if item.image %}
+                    <img src="{{ item.image.url }}" alt="{{ item.name }}" class="menu-thumb" style="width:40px;height:40px;max-width:40px;max-height:40px;object-fit:cover;display:block;flex-shrink:0;">
+                  {% else %}
+                    <div class="menu-thumb-placeholder">🍽</div>
+                  {% endif %}
+                  <div>
+                    <span class="customer-name">{{ item.name }}</span>
+                    {% if item.is_featured %}<span class="featured-badge">Featured</span>{% endif %}
+                    <span class="customer-email">{{ item.description|truncatechars:50 }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="items-cell">{{ item.category.name }}</td>
+              <td class="total-cell">${{ item.price }}</td>
+              <td class="items-cell">
+                {% for tag in item.tags.all %}
+                  <span class="tag-pill">{{ tag.name }}</span>
+                {% empty %}—{% endfor %}
+              </td>
+              <td class="items-cell">{{ item.addons.count }} add-on{{ item.addons.count|pluralize }}</td>
+              <td>
+                <form method="POST" action="{% url 'dashboard:menu_item_toggle' item.id %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="toggle-btn {% if item.is_available %}toggle-on{% else %}toggle-off{% endif %}">
+                    {% if item.is_available %}Visible{% else %}Hidden{% endif %}
+                  </button>
+                </form>
+              </td>
+              <td>
+                <div style="display:flex;gap:0.4rem;align-items:center;">
+                  <a href="{% url 'dashboard:menu_item_edit' item.id %}" class="tbl-btn">Edit</a>
+                  <form method="POST" action="{% url 'dashboard:menu_item_delete' item.id %}"
+                        onsubmit="return confirm('Delete {{ item.name }}? This cannot be undone.')">
+                    {% csrf_token %}
+                    <button type="submit" class="tbl-btn-danger">Del</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="dash-empty">
+      No menu items found.
+      <a href="{% url 'dashboard:menu_item_add' %}" style="color:var(--burnt);">Add your first item →</a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

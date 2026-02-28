@@ -1,0 +1,175 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{% if editing %}Edit{% else %}Add{% endif %} Menu Item{% endblock %}
+{% block breadcrumb %}Menu / {% if editing %}Edit {{ item.name }}{% else %}Add Item{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="detail-header">
+  <div class="detail-header-left">
+    <a href="{% url 'dashboard:menu_list' %}" class="back-link">← Back to Menu</a>
+    <h2 class="detail-title">{% if editing %}Edit <span>{{ item.name }}</span>{% else %}Add <span>New Item</span>{% endif %}</h2>
+  </div>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <div class="detail-grid">
+
+    <!-- Left: Main fields -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+
+      <div class="dash-card">
+        <div class="dash-card-header"><span class="dash-card-title">Item Details</span></div>
+        <div class="form-body">
+
+          <div class="form-field">
+            <label class="form-label">Item Name *</label>
+            <input type="text" name="name" value="{% if editing %}{{ item.name }}{% endif %}"
+                   placeholder="e.g. Crispy Chicken" class="form-input" required>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Description</label>
+            <textarea name="description" rows="3" placeholder="Brief description of the dish..."
+                      class="form-input">{% if editing %}{{ item.description }}{% endif %}</textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Price (USD) *</label>
+              <input type="number" name="price" value="{% if editing %}{{ item.price }}{% endif %}"
+                     step="0.01" min="0" placeholder="0.00" class="form-input" required>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Category *</label>
+              <select name="category" class="form-input" required>
+                <option value="">Select category...</option>
+                {% for cat in categories %}
+                  <option value="{{ cat.id }}"
+                    {% if editing and item.category.id == cat.id %}selected{% endif %}>
+                    {{ cat.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-check">
+              <input type="checkbox" name="is_available" id="is_available"
+                     {% if not editing or item.is_available %}checked{% endif %}>
+              <label for="is_available">Available (visible on menu)</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" name="is_featured" id="is_featured"
+                     {% if editing and item.is_featured %}checked{% endif %}>
+              <label for="is_featured">Featured (show on homepage)</label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="dash-card">
+        <div class="dash-card-header"><span class="dash-card-title">Tags</span></div>
+        <div class="form-body">
+          <div class="tags-grid">
+            {% for tag in tags %}
+              <div class="form-check">
+                <input type="checkbox" name="tags" value="{{ tag.id }}" id="tag_{{ tag.id }}"
+                       {% if editing and tag in item.tags.all %}checked{% endif %}>
+                <label for="tag_{{ tag.id }}">{{ tag.name }}</label>
+              </div>
+            {% empty %}
+              <p style="font-size:0.82rem;color:var(--mid);">No tags yet. Add them in Django admin.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: Image -->
+    <div>
+      <div class="dash-card">
+        <div class="dash-card-header"><span class="dash-card-title">Item Image</span></div>
+        <div class="form-body">
+          {% if editing and item.image %}
+            <div style="margin-bottom:1rem;">
+              <img src="{{ item.image.url }}" alt="{{ item.name }}"
+                   style="width:100%;max-height:200px;object-fit:cover;">
+              <p style="font-size:0.72rem;color:var(--mid);margin-top:0.4rem;">Current image — upload new to replace</p>
+            </div>
+          {% endif %}
+
+          <div class="image-upload-area" id="uploadArea">
+            <div class="upload-icon">📷</div>
+            <p class="upload-text">Click to upload or drag & drop</p>
+            <p class="upload-sub">PNG, JPG up to 5MB</p>
+            <input type="file" name="image" accept="image/*" class="upload-input" id="imageInput">
+          </div>
+          <div id="imagePreview" style="display:none;margin-top:0.8rem;">
+            <img id="previewImg" style="width:100%;max-height:200px;object-fit:cover;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div style="margin-top:1rem;display:flex;gap:0.8rem;">
+        <button type="submit" class="btn-advance" style="flex:1;">
+          {% if editing %}Save Changes{% else %}Add to Menu{% endif %} →
+        </button>
+        <a href="{% url 'dashboard:menu_list' %}" class="btn-outline">Cancel</a>
+      </div>
+    </div>
+
+  </div>
+</form>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Image preview
+  const input = document.getElementById('imageInput');
+  const preview = document.getElementById('imagePreview');
+  const previewImg = document.getElementById('previewImg');
+  const uploadArea = document.getElementById('uploadArea');
+
+  uploadArea.addEventListener('click', () => input.click());
+
+  uploadArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--burnt)';
+  });
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.style.borderColor = 'var(--sand)';
+  });
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--sand)';
+    if (e.dataTransfer.files[0]) {
+      input.files = e.dataTransfer.files;
+      showPreview(e.dataTransfer.files[0]);
+    }
+  });
+
+  input.addEventListener('change', () => {
+    if (input.files[0]) showPreview(input.files[0]);
+  });
+
+  function showPreview(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      preview.style.display = 'block';
+      uploadArea.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+</script>
+{% endblock %}
