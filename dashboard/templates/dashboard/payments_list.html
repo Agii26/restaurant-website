@@ -1,0 +1,133 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Payments{% endblock %}
+{% block breadcrumb %}Payments{% endblock %}
+
+{% block content %}
+
+<!-- ── REVENUE STATS ── -->
+<div class="stat-grid" style="margin-bottom:1.5rem;">
+  <div class="stat-card stat-primary">
+    <div class="stat-label">All Time Revenue</div>
+    <div class="stat-value">${{ total_rev|floatformat:2 }}</div>
+    <div class="stat-sub">{{ total_txns }} transaction{{ total_txns|pluralize }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">This Month</div>
+    <div class="stat-value">${{ month_rev|floatformat:2 }}</div>
+    <div class="stat-sub">last 30 days</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">This Week</div>
+    <div class="stat-value">${{ week_rev|floatformat:2 }}</div>
+    <div class="stat-sub">last 7 days</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Today</div>
+    <div class="stat-value">${{ today_rev|floatformat:2 }}</div>
+    <div class="stat-sub">today only</div>
+  </div>
+</div>
+
+<!-- ── MAIN CARD ── -->
+<div class="dash-card">
+  <div class="dash-card-header">
+    <span class="dash-card-title">All Transactions</span>
+    <div style="display:flex;gap:0.8rem;align-items:center;">
+      <span class="dash-card-title" style="color:var(--mid);font-size:0.68rem;">{{ paginator.count }} total</span>
+      <a href="{% url 'dashboard:payments_export_csv' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="btn-outline" style="font-size:0.68rem;padding:0.3rem 0.8rem;">⬇ Export CSV</a>
+    </div>
+  </div>
+
+  <!-- Status tabs -->
+  <div class="status-tabs">
+    <a href="{% url 'dashboard:payments_list' %}" class="status-tab {% if not status_f %}active{% endif %}">All</a>
+    <a href="?status=paid" class="status-tab {% if status_f == 'paid' %}active{% endif %}">Paid</a>
+    <a href="?status=pending" class="status-tab {% if status_f == 'pending' %}active{% endif %}">Pending</a>
+    <a href="?status=cancelled" class="status-tab {% if status_f == 'cancelled' %}active{% endif %}">Cancelled</a>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <form method="GET" class="filter-form">
+      {% if status_f %}<input type="hidden" name="status" value="{{ status_f }}">{% endif %}
+      <input type="text" name="search" placeholder="Search name, email, order #..." value="{{ search }}" class="filter-input">
+      <input type="date" name="date" value="{{ date_filter }}" class="filter-input filter-date">
+      <button type="submit" class="filter-btn">Filter</button>
+      {% if search or date_filter %}
+        <a href="?{% if status_f %}status={{ status_f }}{% endif %}" class="filter-clear">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Table -->
+  {% if orders %}
+    <div class="orders-table-wrap">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Amount</th>
+            <th>Payment</th>
+            <th>Order Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td class="order-num-cell">#{{ order.order_number|stringformat:"s"|slice:":8"|upper }}</td>
+              <td class="pickup-cell">{{ order.created_at|date:"M j, Y" }}<br><span style="font-size:0.7rem;">{{ order.created_at|time:"g:i A" }}</span></td>
+              <td>
+                <div class="customer-cell">
+                  <span class="customer-name">{{ order.name }}</span>
+                  <span class="customer-email">{{ order.email }}</span>
+                </div>
+              </td>
+              <td class="items-cell">{{ order.items.count }} item{{ order.items.count|pluralize }}</td>
+              <td class="total-cell">${{ order.total }}</td>
+              <td>
+                {% if order.status == 'pending' %}
+                  <span class="pay-badge pay-pending">Pending</span>
+                {% elif order.status == 'cancelled' %}
+                  <span class="pay-badge pay-cancelled">Cancelled</span>
+                {% else %}
+                  <span class="pay-badge pay-paid">Paid</span>
+                {% endif %}
+              </td>
+              <td><span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+              <td><a href="{% url 'dashboard:payment_detail' order.id %}" class="tbl-btn">View →</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if orders.has_other_pages %}
+      <div class="pagination-bar">
+        {% if orders.has_previous %}
+          <a href="?page={{ orders.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_f %}&status={{ status_f }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}" class="page-btn">← Prev</a>
+        {% else %}
+          <span class="page-btn page-btn-disabled">← Prev</span>
+        {% endif %}
+        <div class="page-info">Page {{ orders.number }} of {{ orders.paginator.num_pages }}</div>
+        {% if orders.has_next %}
+          <a href="?page={{ orders.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_f %}&status={{ status_f }}{% endif %}{% if date_filter %}&date={{ date_filter }}{% endif %}" class="page-btn">Next →</a>
+        {% else %}
+          <span class="page-btn page-btn-disabled">Next →</span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div class="dash-empty">No transactions found{% if search %} for "{{ search }}"{% endif %}.</div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

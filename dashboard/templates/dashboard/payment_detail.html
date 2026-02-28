@@ -1,0 +1,208 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Payment — #{{ order.order_number|stringformat:"s"|slice:":8"|upper }}{% endblock %}
+{% block breadcrumb %}Payments / #{{ order.order_number|stringformat:"s"|slice:":8"|upper }}{% endblock %}
+
+{% block content %}
+
+<!-- ── HEADER ── -->
+<div class="detail-header">
+  <div class="detail-header-left">
+    <a href="{% url 'dashboard:payments_list' %}" class="back-link">← Back to Payments</a>
+    <h2 class="detail-title">Payment <span>#{{ order.order_number|stringformat:"s"|slice:":8"|upper }}</span></h2>
+    <span class="detail-date">{{ order.created_at|date:"F j, Y" }} at {{ order.created_at|time:"g:i A" }}</span>
+  </div>
+  <div class="detail-header-right">
+    {% if payment_status == 'paid' %}
+      <span class="pay-badge pay-paid pay-badge-lg">✓ Paid</span>
+    {% elif payment_status == 'pending' %}
+      <span class="pay-badge pay-pending pay-badge-lg">Pending</span>
+    {% else %}
+      <span class="pay-badge pay-cancelled pay-badge-lg">Cancelled</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── DETAIL GRID ── -->
+<div class="detail-grid">
+
+  <!-- Left: Order + items -->
+  <div style="display:flex;flex-direction:column;gap:1rem;">
+
+    <!-- Order items -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <span class="dash-card-title">Items Ordered</span>
+      </div>
+      {% for item in order.items.all %}
+        <div class="detail-item-row">
+          <div class="detail-item-info">
+            <span class="detail-item-qty">{{ item.quantity }}×</span>
+            <span class="detail-item-name">{{ item.name }}</span>
+          </div>
+          <span class="detail-item-price">${{ item.item_total }}</span>
+        </div>
+      {% endfor %}
+      <div class="detail-totals">
+        {% if order.discount_amount %}
+          <div class="detail-total-row discount">
+            <span>Discount</span>
+            <span>−${{ order.discount_amount }}</span>
+          </div>
+        {% endif %}
+        <div class="detail-total-row grand">
+          <span>Total Charged</span>
+          <span>${{ order.total }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer info -->
+    <div class="dash-card">
+      <div class="dash-card-header"><span class="dash-card-title">Customer</span></div>
+      <div class="info-rows">
+        <div class="info-row">
+          <span class="info-label">Name</span>
+          <span class="info-value">{{ order.name }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Email</span>
+          <span class="info-value"><a href="mailto:{{ order.email }}" class="info-link">{{ order.email }}</a></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Phone</span>
+          <span class="info-value"><a href="tel:{{ order.phone }}" class="info-link">{{ order.phone }}</a></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Pickup</span>
+          <span class="info-value pickup-time-highlight">{{ order.pickup_time|date:"M j, Y" }} {{ order.pickup_time|time:"g:i A" }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right: Stripe info + refund -->
+  <div style="display:flex;flex-direction:column;gap:1rem;">
+
+    <!-- Stripe details -->
+    <div class="dash-card">
+      <div class="dash-card-header"><span class="dash-card-title">Stripe Details</span></div>
+      <div class="info-rows">
+        {% if stripe_error %}
+          <div class="info-row">
+            <span style="font-size:0.78rem;color:var(--error);padding:0.5rem 0;">{{ stripe_error }}</span>
+          </div>
+        {% elif stripe_session %}
+          <div class="info-row">
+            <span class="info-label">Session ID</span>
+            <span class="info-value stripe-id">{{ stripe_session.id }}</span>
+          </div>
+          {% if stripe_charge %}
+            <div class="info-row">
+              <span class="info-label">Charge ID</span>
+              <span class="info-value stripe-id">{{ stripe_charge.id }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Payment Method</span>
+              <span class="info-value">•••• {{ stripe_charge.payment_method_details.card.last4 }} ({{ stripe_charge.payment_method_details.card.brand|title }})</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Amount Charged</span>
+                <span class="info-value" style="color:var(--burnt);font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;">${{ stripe_amount|floatformat:2 }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Stripe Status</span>
+              <span class="info-value">{{ stripe_charge.status|title }}</span>
+            </div>
+            {% if stripe_charge.receipt_url %}
+              <div class="info-row">
+                <span class="info-label">Receipt</span>
+                <span class="info-value"><a href="{{ stripe_charge.receipt_url }}" target="_blank" class="info-link">View on Stripe →</a></span>
+              </div>
+            {% endif %}
+          {% endif %}
+          <div class="info-row">
+            <span class="info-label">Dashboard</span>
+            <span class="info-value">
+              <a href="https://dashboard.stripe.com/payments/{{ stripe_session.payment_intent }}" target="_blank" class="info-link">Open in Stripe →</a>
+            </span>
+          </div>
+        {% else %}
+          <div class="dash-empty" style="padding:1.2rem;">Stripe session not found. Order may have been placed before tracking was enabled, or payment was not completed.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Refund -->
+    {% if payment_status == 'paid' and stripe_charge %}
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-card-title">Issue Refund</span>
+        </div>
+        <div class="form-body">
+          <form method="POST" action="{% url 'dashboard:payment_refund' order.id %}"
+                onsubmit="return confirm('Issue this refund? This cannot be undone.')">
+            {% csrf_token %}
+
+            <div class="refund-type-row">
+              <label class="refund-radio">
+                <input type="radio" name="refund_type" value="full" checked onchange="togglePartial(false)">
+                <span>Full Refund (${{ order.total }})</span>
+              </label>
+              <label class="refund-radio">
+                <input type="radio" name="refund_type" value="partial" onchange="togglePartial(true)">
+                <span>Partial Refund</span>
+              </label>
+            </div>
+
+            <div id="partialAmount" style="display:none;margin-top:0.8rem;">
+              <div class="form-field">
+                <label class="form-label">Refund Amount (USD)</label>
+                <input type="number" name="amount" step="0.01" min="0.01" max="{{ order.total }}"
+                       placeholder="0.00" class="form-input">
+              </div>
+            </div>
+
+            <button type="submit" class="btn-cancel-order" style="width:100%;margin-top:1rem;padding:0.8rem;">
+              Issue Refund via Stripe
+            </button>
+          </form>
+
+          <p style="font-size:0.72rem;color:var(--mid);margin-top:0.8rem;line-height:1.6;">
+            Refunds are processed immediately through Stripe. The order will be marked as cancelled. Funds typically appear in the customer's account within 5–10 business days.
+          </p>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Order status link -->
+    <div class="dash-card">
+      <div class="dash-card-header"><span class="dash-card-title">Order Status</span></div>
+      <div class="info-rows">
+        <div class="info-row">
+          <span class="info-label">Current Status</span>
+          <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Manage Order</span>
+          <span class="info-value">
+            <a href="{% url 'dashboard:order_detail' order.id %}" class="info-link">View Order Details →</a>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function togglePartial(show) {
+    document.getElementById('partialAmount').style.display = show ? 'block' : 'none';
+  }
+</script>
+{% endblock %}

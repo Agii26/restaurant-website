@@ -4,6 +4,7 @@ from . import orders_views
 from . import reservations_views
 from . import menu_views
 from . import customer_views
+from . import payment_views
 
 app_name = 'dashboard'
 
@@ -43,4 +44,10 @@ urlpatterns = [
     path('customers/<str:email>/', customer_views.customer_detail, name='customer_detail'),
     path('customers/<str:email>/block/', customer_views.customer_block, name='customer_block'),
     path('customers/<str:email>/unblock/', customer_views.customer_unblock, name='customer_unblock'),
+
+    # ── Payments ──
+    path('payments/', payment_views.payments_list, name='payments_list'),
+    path('payments/<int:order_id>/', payment_views.payment_detail, name='payment_detail'),
+    path('payments/<int:order_id>/refund/', payment_views.payment_refund, name='payment_refund'),
+    path('payments/export/', payment_views.payments_export_csv, name='payments_export_csv'),
 ]
