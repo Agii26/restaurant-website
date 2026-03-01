@@ -8,6 +8,7 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
+import cloudinary
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -49,6 +50,10 @@ INSTALLED_APPS = [
 
     # Third-party apps
     'django_ratelimit',
+
+    #cloudinary for media storage
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -205,4 +210,18 @@ RESTAURANT_EMAIL = 'xhide26x@gmail.com'
 # -------------------------------------------------------------------
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# -------------------------------------------------------------------
+# CLOUDINARY CONFIGURATION
+# -------------------------------------------------------------------
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
