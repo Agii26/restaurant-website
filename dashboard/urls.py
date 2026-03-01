@@ -5,6 +5,7 @@ from . import reservations_views
 from . import menu_views
 from . import customer_views
 from . import payment_views
+from . import staff_views
 
 app_name = 'dashboard'
 
@@ -47,7 +48,15 @@ urlpatterns = [
 
     # ── Payments ──
     path('payments/', payment_views.payments_list, name='payments_list'),
+    path('payments/export/', payment_views.payments_export_csv, name='payments_export_csv'),
     path('payments/<int:order_id>/', payment_views.payment_detail, name='payment_detail'),
     path('payments/<int:order_id>/refund/', payment_views.payment_refund, name='payment_refund'),
-    path('payments/export/', payment_views.payments_export_csv, name='payments_export_csv'),
+
+    # ── Staff ──
+    path('staff/', staff_views.staff_list, name='staff_list'),
+    path('staff/add/', staff_views.staff_add, name='staff_add'),
+    path('staff/<int:staff_id>/edit/', staff_views.staff_edit, name='staff_edit'),
+    path('staff/<int:staff_id>/toggle/', staff_views.staff_toggle_active, name='staff_toggle_active'),
+    path('staff/<int:staff_id>/password/', staff_views.staff_reset_password, name='staff_reset_password'),
+    path('staff/<int:staff_id>/delete/', staff_views.staff_delete, name='staff_delete'),
 ]

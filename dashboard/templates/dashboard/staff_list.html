@@ -1,0 +1,167 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Staff Management{% endblock %}
+{% block breadcrumb %}Staff{% endblock %}
+
+{% block content %}
+
+<!-- ── STATS ── -->
+<div class="stat-grid" style="margin-bottom:1.5rem;">
+  <div class="stat-card stat-primary">
+    <div class="stat-label">Total Staff</div>
+    <div class="stat-value">{{ total_staff }}</div>
+    <div class="stat-sub">accounts</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Active</div>
+    <div class="stat-value">{{ active_staff }}</div>
+    <div class="stat-sub">can log in</div>
+  </div>
+  <div class="stat-card stat-alert">
+    <div class="stat-label">Inactive</div>
+    <div class="stat-value">{{ total_staff|add:"-"|add:active_staff }}</div>
+    <div class="stat-sub">deactivated</div>
+  </div>
+</div>
+
+<!-- ── ACTION BAR ── -->
+<div class="action-bar" style="margin-bottom:1rem;">
+  <div class="action-bar-left">
+    <a href="{% url 'dashboard:staff_add' %}" class="btn-advance">+ Add Staff Member</a>
+  </div>
+</div>
+
+<!-- ── STAFF TABLE ── -->
+<div class="dash-card">
+  <div class="dash-card-header">
+    <span class="dash-card-title">Staff Accounts</span>
+  </div>
+
+  {% if staff %}
+    <div class="orders-table-wrap">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for profile in staff %}
+            <tr class="{% if not profile.is_active %}row-hidden{% endif %}">
+              <td>
+                <div style="display:flex;align-items:center;gap:0.7rem;">
+                  <div class="staff-avatar-sm">
+                    {{ profile.user.first_name|first|upper }}{{ profile.user.last_name|first|upper }}
+                  </div>
+                  <div>
+                    <span class="customer-name">
+                      {{ profile.user.get_full_name|default:profile.user.username }}
+                      {% if profile.user == request.user %}
+                        <span style="font-size:0.6rem;color:var(--burnt);margin-left:0.3rem;">(you)</span>
+                      {% endif %}
+                    </span>
+                    <span class="customer-email">Joined {{ profile.created_at|date:"M j, Y" }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="items-cell">{{ profile.user.username }}</td>
+              <td class="items-cell">{{ profile.user.email|default:"—" }}</td>
+              <td class="items-cell">{{ profile.phone|default:"—" }}</td>
+              <td>
+                <span class="role-badge role-{{ profile.role }}">{{ profile.get_role_display }}</span>
+              </td>
+              <td>
+                {% if profile.is_active %}
+                  <span class="toggle-btn toggle-on" style="cursor:default;">Active</span>
+                {% else %}
+                  <span class="toggle-btn toggle-off" style="cursor:default;">Inactive</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                  {% if profile.user != request.user %}
+                    <a href="{% url 'dashboard:staff_edit' profile.id %}" class="tbl-btn">Edit</a>
+
+                    <!-- Toggle active -->
+                    <form method="POST" action="{% url 'dashboard:staff_toggle_active' profile.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="tbl-btn" style="color:{% if profile.is_active %}var(--error){% else %}var(--success){% endif %};">
+                        {% if profile.is_active %}Deactivate{% else %}Activate{% endif %}
+                      </button>
+                    </form>
+
+                    <!-- Reset password (shown in modal) -->
+                    <button onclick="openPasswordModal({{ profile.id }}, '{{ profile.user.get_full_name|default:profile.user.username }}')" class="tbl-btn">
+                      Reset PW
+                    </button>
+
+                    <!-- Delete -->
+                    <form method="POST" action="{% url 'dashboard:staff_delete' profile.id %}"
+                          onsubmit="return confirm('Delete {{ profile.user.get_full_name|default:profile.user.username }}? This cannot be undone.')">
+                      {% csrf_token %}
+                      <button type="submit" class="tbl-btn-danger">Del</button>
+                    </form>
+                  {% else %}
+                    <span style="font-size:0.72rem;color:var(--mid);">Your account</span>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="dash-empty">No staff accounts yet.</div>
+  {% endif %}
+</div>
+
+<!-- ── PASSWORD RESET MODAL ── -->
+<div id="pwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;align-items:center;justify-content:center;">
+  <div style="background:white;max-width:400px;width:90%;padding:2rem;">
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:0.4rem;">Reset Password</h3>
+    <p id="pwModalName" style="font-size:0.82rem;color:var(--mid);margin-bottom:1.5rem;"></p>
+
+    <form method="POST" id="pwModalForm">
+      {% csrf_token %}
+      <div class="form-field">
+        <label class="form-label">New Password</label>
+        <input type="password" name="new_password" class="form-input" placeholder="Min. 8 characters" required>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" name="new_password2" class="form-input" placeholder="Repeat password" required>
+      </div>
+      <div style="display:flex;gap:0.8rem;margin-top:1rem;">
+        <button type="submit" class="btn-advance" style="flex:1;">Reset Password</button>
+        <button type="button" onclick="closePasswordModal()" class="btn-outline">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function openPasswordModal(staffId, name) {
+    document.getElementById('pwModal').style.display = 'flex';
+    document.getElementById('pwModalName').textContent = 'Resetting password for: ' + name;
+    document.getElementById('pwModalForm').action = '/dashboard/staff/' + staffId + '/password/';
+  }
+  function closePasswordModal() {
+    document.getElementById('pwModal').style.display = 'none';
+  }
+  // Close on backdrop click
+  document.getElementById('pwModal').addEventListener('click', function(e) {
+    if (e.target === this) closePasswordModal();
+  });
+</script>
+{% endblock %}

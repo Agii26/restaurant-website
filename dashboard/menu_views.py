@@ -250,7 +250,7 @@ def menu_csv_import(request):
                                 AddOn.objects.get_or_create(
                                     dish=item,
                                     name__iexact=addon_name.strip(),
-                                    defaults={'name': addon_name.strip(), 'price': addon_price.strip()}
+                                    defaults={'name': addon_name.strip(), 'additional_price': addon_price.strip()}
                                 )
 
                     if was_created:
@@ -292,8 +292,14 @@ def menu_csv_template(request):
 
     writer = csv.writer(response)
     writer.writerow(['name', 'category', 'price', 'description', 'is_available', 'is_featured', 'tags', 'addons', 'image'])
-    writer.writerow(['Crispy Chicken', 'Mains', '12.99', 'Golden fried chicken with herbs', 'true', 'false', 'Bestseller|Chicken', 'Extra Sauce:1.50|Extra Rice:2.00', 'crispy_chicken.jpg'])
-    writer.writerow(['Caesar Salad', 'Starters', '8.50', 'Fresh romaine with Caesar dressing', 'true', 'false', 'Salad|Healthy', '', ''])
+
+    # Example rows using your actual categories and tag choices
+    writer.writerow(['Lobster Bisque', 'Chef Specials', '24.99', 'Rich creamy bisque with fresh lobster', 'true', 'true', 'bestseller|spicy', 'Extra Bread:1.50', ''])
+    writer.writerow(['Grilled Ribeye', 'Main Course', '32.00', '12oz ribeye with herb butter', 'true', 'false', 'bestseller', 'Extra Sauce:2.00|Upgrade to Wagyu:15.00', ''])
+    writer.writerow(['Spring Rolls', 'Appetizers', '8.50', 'Crispy veggie spring rolls', 'true', 'false', 'vegan', '', ''])
+    writer.writerow(['Spaghetti Carbonara', 'Pasta', '14.99', 'Classic carbonara with pancetta', 'true', 'false', '', 'Extra Parmesan:1.00', ''])
+    writer.writerow(['Chocolate Lava Cake', 'Desserts', '9.00', 'Warm chocolate cake with vanilla ice cream', 'true', 'false', 'new', '', ''])
+    writer.writerow(['Mango Shake', 'Beverages', '5.50', 'Fresh mango blended with milk', 'true', 'false', '', '', ''])
 
     return response
 
@@ -319,8 +325,20 @@ def categories_list(request):
         elif action == 'delete':
             cat_id = request.POST.get('category_id')
             cat = get_object_or_404(Category, id=cat_id)
-            if cat.menuitem_set.exists():
-                messages.error(request, f'Cannot delete "{cat.name}" — it has menu items. Reassign them first.')
+            reassign_id = request.POST.get('reassign_to', '').strip()
+            item_count = cat.items.count()
+
+            if item_count > 0:
+                if not reassign_id:
+                    messages.error(request, f'"{cat.name}" has {item_count} item(s). Select a category to move them to first.')
+                else:
+                    try:
+                        new_cat = Category.objects.get(id=reassign_id)
+                        cat.items.update(category=new_cat)
+                        cat.delete()
+                        messages.success(request, f'"{cat.name}" deleted. {item_count} item(s) moved to "{new_cat.name}".')
+                    except Category.DoesNotExist:
+                        messages.error(request, 'Target category not found.')
             else:
                 cat.delete()
                 messages.success(request, f'Category "{cat.name}" deleted.')

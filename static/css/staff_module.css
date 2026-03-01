@@ -1,0 +1,38 @@
+/* ============================================================
+   STAFF MODULE — append to dashboard.css
+   ============================================================ */
+
+/* ── STAFF AVATAR SMALL ── */
+.staff-avatar-sm {
+  width: 32px; height: 32px;
+  background: var(--burnt-soft);
+  border: 1px solid rgba(200,87,42,0.3);
+  color: var(--burnt);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 500;
+  flex-shrink: 0; letter-spacing: 0.05em;
+}
+
+/* ── ROLE BADGES ── */
+.role-badge {
+  font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 500;
+  padding: 0.25rem 0.6rem; white-space: nowrap;
+}
+.role-owner   { background: rgba(200,87,42,0.12); color: var(--burnt); }
+.role-manager { background: var(--info-soft); color: var(--info); }
+.role-staff   { background: var(--sand); color: var(--mid); }
+
+/* ── ROLE INFO BOX ── */
+.role-info-box {
+  background: var(--sand-light);
+  border: 1px solid var(--sand);
+  padding: 1rem;
+  margin-top: 1rem;
+  display: flex; flex-direction: column; gap: 0.6rem;
+}
+.role-info-row {
+  display: flex; align-items: center; gap: 0.8rem;
+  font-size: 0.78rem; color: var(--mid);
+}

@@ -1,0 +1,115 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{% if editing %}Edit Staff{% else %}Add Staff{% endif %}{% endblock %}
+{% block breadcrumb %}Staff / {% if editing %}Edit {{ profile.user.get_full_name|default:profile.user.username }}{% else %}Add Member{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="detail-header">
+  <div class="detail-header-left">
+    <a href="{% url 'dashboard:staff_list' %}" class="back-link">← Back to Staff</a>
+    <h2 class="detail-title">{% if editing %}Edit <span>{{ profile.user.get_full_name|default:profile.user.username }}</span>{% else %}Add <span>Staff Member</span>{% endif %}</h2>
+  </div>
+</div>
+
+<div style="max-width:560px;">
+  <div class="dash-card">
+    <div class="dash-card-header">
+      <span class="dash-card-title">{% if editing %}Staff Details{% else %}New Staff Account{% endif %}</span>
+    </div>
+    <div class="form-body">
+      <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">First Name</label>
+            <input type="text" name="first_name" class="form-input"
+                   value="{% if editing %}{{ profile.user.first_name }}{% endif %}"
+                   placeholder="First name">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Last Name</label>
+            <input type="text" name="last_name" class="form-input"
+                   value="{% if editing %}{{ profile.user.last_name }}{% endif %}"
+                   placeholder="Last name">
+          </div>
+        </div>
+
+        {% if not editing %}
+          <div class="form-field">
+            <label class="form-label">Username *</label>
+            <input type="text" name="username" class="form-input"
+                   placeholder="e.g. jsmith" required autocomplete="off">
+          </div>
+        {% endif %}
+
+        <div class="form-field">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-input"
+                 value="{% if editing %}{{ profile.user.email }}{% endif %}"
+                 placeholder="staff@email.com">
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Phone</label>
+            <input type="text" name="phone" class="form-input"
+                   value="{% if editing %}{{ profile.phone }}{% endif %}"
+                   placeholder="+1 234 567 8900">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Role *</label>
+            <select name="role" class="form-input" required>
+              <option value="staff"   {% if editing and profile.role == 'staff' %}selected{% endif %}>Staff</option>
+              <option value="manager" {% if editing and profile.role == 'manager' %}selected{% endif %}>Manager</option>
+              <option value="owner"   {% if editing and profile.role == 'owner' %}selected{% endif %}>Owner</option>
+            </select>
+          </div>
+        </div>
+
+        {% if not editing %}
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Password *</label>
+              <input type="password" name="password" class="form-input"
+                     placeholder="Min. 8 characters" required autocomplete="new-password">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Confirm Password *</label>
+              <input type="password" name="password2" class="form-input"
+                     placeholder="Repeat password" required autocomplete="new-password">
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Role description -->
+        <div class="role-info-box">
+          <div class="role-info-row">
+            <span class="role-badge role-staff">Staff</span>
+            <span>Orders + Reservations only</span>
+          </div>
+          <div class="role-info-row">
+            <span class="role-badge role-manager">Manager</span>
+            <span>Orders, Reservations, Menu, Customers, Payments</span>
+          </div>
+          <div class="role-info-row">
+            <span class="role-badge role-owner">Owner</span>
+            <span>Full access including Staff Management</span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:0.8rem;margin-top:1.5rem;">
+          <button type="submit" class="btn-advance" style="flex:1;">
+            {% if editing %}Save Changes{% else %}Create Account{% endif %} →
+          </button>
+          <a href="{% url 'dashboard:staff_list' %}" class="btn-outline">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

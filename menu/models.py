@@ -3,16 +3,10 @@ from django.utils.text import slugify
 
 
 class Tag(models.Model):
-    TAG_CHOICES = [
-        ('spicy', '🌶 Spicy'),
-        ('vegan', '🌱 Vegan'),
-        ('bestseller', '⭐ Bestseller'),
-        ('new', '🆕 New'),
-    ]
-    name = models.CharField(max_length=50, choices=TAG_CHOICES, unique=True)
+    name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
-        return self.get_name_display()
+        return self.name
 
 
 class Category(models.Model):

@@ -70,7 +70,7 @@
 
       {% if request.user.staff_profile.can_manage_staff %}
         <div class="nav-section-label">Admin</div>
-        <a href="#" class="nav-item">
+        <a href="{% url 'dashboard:staff_list' %}" class="nav-item">
           <span class="nav-icon">🔑</span>
           <span class="nav-label">Staff</span>
         </a>

@@ -36,15 +36,36 @@
           {% for cat in categories %}
             <tr>
               <td class="customer-name">{{ cat.name }}</td>
-              <td class="items-cell">{{ cat.order }}</td>
+              <td class="items-cell">{{ cat.order_position }}</td>
               <td class="items-cell">{{ cat.menuitem_set.count }} item{{ cat.menuitem_set.count|pluralize }}</td>
-              <td>
-                <form method="POST" onsubmit="return confirm('Delete {{ cat.name }}?')">
-                  {% csrf_token %}
-                  <input type="hidden" name="action" value="delete">
-                  <input type="hidden" name="category_id" value="{{ cat.id }}">
-                  <button type="submit" class="tbl-btn-danger">Delete</button>
-                </form>
+              <td style="white-space:nowrap;">
+                {% if cat.items.count > 0 %}
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <form method="POST" style="display:flex;align-items:center;gap:0.4rem;">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="delete">
+                      <input type="hidden" name="category_id" value="{{ cat.id }}">
+                      <select name="reassign_to" class="filter-input" style="font-size:0.72rem;padding:0.3rem 0.5rem;width:140px;">
+                        <option value="">Move items to...</option>
+                        {% for other in categories %}
+                          {% if other.id != cat.id %}
+                            <option value="{{ other.id }}">{{ other.name }}</option>
+                          {% endif %}
+                        {% endfor %}
+                      </select>
+                      <button type="submit" class="tbl-btn-danger"
+                              onclick="return confirm('Delete {{ cat.name }}?')">Delete</button>
+                    </form>
+                  </div>
+                {% else %}
+                  <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="category_id" value="{{ cat.id }}">
+                    <button type="submit" class="tbl-btn-danger"
+                            onclick="return confirm('Delete {{ cat.name }}?')">Delete</button>
+                  </form>
+                {% endif %}
               </td>
             </tr>
           {% endfor %}
@@ -68,7 +89,7 @@
         </div>
         <div class="form-field">
           <label class="form-label">Display Order</label>
-          <input type="number" name="order" value="0" min="0" class="form-input">
+          <input type="number" name="order_position" value="0" min="0" class="form-input">
           <span style="font-size:0.72rem;color:var(--mid);">Lower numbers appear first</span>
         </div>
         <button type="submit" class="btn-advance" style="width:100%;margin-top:0.5rem;">Add Category →</button>
