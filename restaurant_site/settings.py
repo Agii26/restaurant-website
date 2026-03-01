@@ -35,6 +35,11 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
 # -------------------------------------------------------------------
 
 INSTALLED_APPS = [
+
+    #cloudinary for media storage
+    'cloudinary',
+    'cloudinary_storage',
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,9 +56,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'django_ratelimit',
 
-    #cloudinary for media storage
-    'cloudinary',
-    'cloudinary_storage',
+    
 ]
 
 MIDDLEWARE = [
