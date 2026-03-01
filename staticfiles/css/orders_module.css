@@ -1,0 +1,222 @@
+/* ============================================================
+   ORDERS MODULE — append to dashboard.css
+   ============================================================ */
+
+/* ── STATUS TABS ── */
+.status-tabs {
+  display: flex; flex-wrap: wrap; gap: 0;
+  border-bottom: 1px solid var(--sand);
+  padding: 0 1rem;
+  background: white;
+  overflow-x: auto;
+}
+.status-tab {
+  padding: 0.75rem 1rem;
+  font-size: 0.72rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--mid);
+  text-decoration: none; white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all 0.18s;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.status-tab:hover { color: var(--charcoal); }
+.status-tab.active { color: var(--burnt); border-bottom-color: var(--burnt); }
+.tab-count {
+  background: var(--sand);
+  color: var(--mid);
+  font-size: 0.6rem; padding: 0.1rem 0.4rem;
+  border-radius: 10px; min-width: 18px; text-align: center;
+}
+.status-tab.active .tab-count { background: var(--burnt-soft); color: var(--burnt); }
+
+/* ── FILTER BAR ── */
+.filter-bar { padding: 0.8rem 1rem; background: var(--sand-light); border-bottom: 1px solid var(--sand); }
+.filter-form { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.filter-input {
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--sand);
+  background: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem; font-weight: 300;
+  color: var(--charcoal);
+  flex: 1; min-width: 180px;
+}
+.filter-input:focus { outline: 2px solid var(--burnt); border-color: transparent; }
+.filter-date { flex: 0 0 auto; min-width: 0; }
+.filter-btn {
+  padding: 0.55rem 1.2rem;
+  background: var(--burnt); color: white; border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.2s;
+}
+.filter-btn:hover { background: var(--burnt-dark); }
+.filter-clear {
+  font-size: 0.72rem; color: var(--mid);
+  text-decoration: none; padding: 0.55rem 0.5rem;
+  transition: color 0.2s;
+}
+.filter-clear:hover { color: var(--error); }
+
+/* ── TABLE ACTION BTN ── */
+.tbl-btn {
+  font-size: 0.68rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--burnt);
+  text-decoration: none; white-space: nowrap;
+  border-bottom: 1px solid var(--burnt);
+  padding-bottom: 0.1rem;
+  transition: opacity 0.2s;
+}
+.tbl-btn:hover { opacity: 0.7; }
+
+/* ── ORDER DETAIL ── */
+.detail-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;
+}
+.detail-header-left { display: flex; flex-direction: column; gap: 0.3rem; }
+.back-link {
+  font-size: 0.68rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--mid);
+  text-decoration: none; transition: color 0.2s;
+}
+.back-link:hover { color: var(--burnt); }
+.detail-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem; font-weight: 700; color: var(--charcoal);
+}
+.detail-title span { color: var(--burnt); }
+.detail-date { font-size: 0.75rem; color: var(--mid); }
+.detail-header-right { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+
+.status-lg { font-size: 0.72rem !important; padding: 0.35rem 0.9rem !important; }
+
+.btn-outline {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--sand);
+  background: white; color: var(--charcoal);
+  text-decoration: none;
+  font-size: 0.72rem; font-weight: 400;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  transition: all 0.18s;
+}
+.btn-outline:hover { border-color: var(--burnt); color: var(--burnt); }
+
+/* ── STATUS PROGRESS ── */
+.status-progress { padding: 1.5rem 1.5rem 0.5rem; }
+.progress-steps {
+  display: flex; align-items: center;
+  gap: 0; overflow-x: auto;
+}
+.progress-step {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.4rem; flex-shrink: 0;
+}
+.step-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--sand);
+  background: white;
+  transition: all 0.2s;
+}
+.progress-step.active .step-dot { border-color: var(--burnt); background: var(--burnt); }
+.progress-step.done .step-dot { border-color: var(--success); background: var(--success); }
+.step-label {
+  font-size: 0.6rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--light);
+  white-space: nowrap;
+}
+.progress-step.active .step-label { color: var(--burnt); font-weight: 500; }
+.progress-step.done .step-label { color: var(--success); }
+.progress-line {
+  flex: 1; height: 2px; background: var(--sand);
+  min-width: 40px; margin-bottom: 1.4rem;
+  transition: background 0.2s;
+}
+.progress-line.done { background: var(--success); }
+
+.status-actions {
+  display: flex; gap: 0.8rem; align-items: center;
+  padding: 1rem 1.5rem 1.2rem; flex-wrap: wrap;
+}
+.btn-advance {
+  padding: 0.7rem 1.5rem;
+  background: var(--burnt); color: white; border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem; font-weight: 500;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  cursor: pointer; transition: background 0.2s, transform 0.2s;
+}
+.btn-advance:hover { background: var(--burnt-dark); transform: translateY(-1px); }
+.btn-cancel-order {
+  padding: 0.7rem 1.2rem;
+  background: none; color: var(--error);
+  border: 1px solid var(--error);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem; font-weight: 400;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.18s;
+}
+.btn-cancel-order:hover { background: var(--error-soft); }
+
+/* ── DETAIL GRID ── */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1rem; align-items: start;
+}
+@media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr; } }
+
+/* ── DETAIL ITEMS ── */
+.detail-item-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.85rem 1.2rem;
+  border-bottom: 1px solid var(--sand); gap: 1rem;
+}
+.detail-item-row:last-child { border-bottom: none; }
+.detail-item-info { display: flex; align-items: flex-start; gap: 0.7rem; flex: 1; }
+.detail-item-qty {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem; font-weight: 700;
+  color: var(--burnt); flex-shrink: 0;
+}
+.detail-item-name { font-size: 0.9rem; color: var(--charcoal); display: block; }
+.detail-item-addons { font-size: 0.72rem; color: var(--mid); display: block; }
+.detail-item-price { font-size: 0.88rem; color: var(--mid); white-space: nowrap; }
+
+.detail-totals { padding: 0.8rem 1.2rem; background: var(--sand-light); }
+.detail-total-row {
+  display: flex; justify-content: space-between;
+  padding: 0.3rem 0; font-size: 0.85rem; color: var(--mid);
+}
+.detail-total-row.discount { color: var(--success); }
+.detail-total-row.grand {
+  font-size: 1rem; color: var(--burnt);
+  font-family: 'Playfair Display', serif;
+  font-weight: 700; font-size: 1.2rem;
+  border-top: 1px solid var(--sand);
+  margin-top: 0.4rem; padding-top: 0.6rem;
+}
+
+/* ── INFO ROWS ── */
+.info-rows { padding: 0; }
+.info-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 0.75rem 1.2rem;
+  border-bottom: 1px solid var(--sand); gap: 1rem;
+}
+.info-row:last-child { border-bottom: none; }
+.info-label {
+  font-size: 0.62rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--mid);
+  flex-shrink: 0; padding-top: 0.1rem;
+}
+.info-value { font-size: 0.85rem; color: var(--charcoal); text-align: right; }
+.info-link { color: var(--burnt); text-decoration: none; }
+.info-link:hover { text-decoration: underline; }
+.pickup-time-highlight {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem; font-style: italic; color: var(--burnt);
+}
