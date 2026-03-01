@@ -172,9 +172,21 @@ USE_TZ = True
 # STATIC & MEDIA FILES
 # -------------------------------------------------------------------
 
-STATICFILES_DIRS = [BASE_DIR / 'restaurant_site' / 'static']
+# -------------------------------------------------------------------
+# STATIC FILES CONFIGURATION
+# -------------------------------------------------------------------
+
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Your static folder is beside manage.py
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# This is where collectstatic gathers files in production
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# WhiteNoise production storage
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
