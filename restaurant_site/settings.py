@@ -8,7 +8,6 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
-import cloudinary
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -39,7 +38,7 @@ INSTALLED_APPS = [
     #cloudinary for media storage
     'cloudinary',
     'cloudinary_storage',
-    
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -226,5 +225,7 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
 
+# Media files only — static files still handled by WhiteNoise
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
