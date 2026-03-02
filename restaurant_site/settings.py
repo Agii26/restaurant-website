@@ -174,14 +174,22 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
 print("Cloudinary cloud name:", os.environ.get('CLOUDINARY_CLOUD_NAME'))
+# -------------------------------------------------------------------
+# DJANGO 4.2+ STORAGE CONFIGURATION
+# -------------------------------------------------------------------
+
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
+        # WhiteNoise static file handling
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+# Required because cloudinary_storage still checks this internally
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 
 
