@@ -155,9 +155,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# WhiteNoise serves static files — Cloudinary handles media only
-
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -173,24 +170,19 @@ CLOUDINARY_STORAGE = {
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
-print("Cloudinary cloud name:", os.environ.get('CLOUDINARY_CLOUD_NAME'))
-# -------------------------------------------------------------------
-# DJANGO 4.2+ STORAGE CONFIGURATION
-# -------------------------------------------------------------------
 
+# Django 4.2+ unified storage config
 STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    'default': {
+        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
     },
-    "staticfiles": {
-        # WhiteNoise static file handling
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
 
-# Required because cloudinary_storage still checks this internally
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
-
+# Required because django-cloudinary-storage 0.3.0 still checks this internally
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 
 # -------------------------------------------------------------------
@@ -221,3 +213,99 @@ RESTAURANT_EMAIL = 'xhide26x@gmail.com'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# -------------------------------------------------------------------
+# LOGGING
+# -------------------------------------------------------------------
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} | {name} | {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'simple': {
+            'format': '[{levelname}] {message}',
+            'style': '{',
+        },
+    },
+
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+
+    'loggers': {
+        # Project apps — full detail in debug, INFO in production
+        'dashboard': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if os.environ.get('DEBUG', 'True') == 'True' else 'INFO',
+            'propagate': False,
+        },
+        'orders': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if os.environ.get('DEBUG', 'True') == 'True' else 'INFO',
+            'propagate': False,
+        },
+        'reservations': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if os.environ.get('DEBUG', 'True') == 'True' else 'INFO',
+            'propagate': False,
+        },
+        'menu': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if os.environ.get('DEBUG', 'True') == 'True' else 'INFO',
+            'propagate': False,
+        },
+
+        # Django internals — warnings and above only
+        'django': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+
+        # Third-party — errors only
+        'stripe': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'cloudinary': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+
+    # Catch-all
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+}

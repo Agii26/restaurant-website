@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -146,6 +150,7 @@ def staff_reset_password(request, staff_id):
     else:
         profile.user.set_password(new_password)
         profile.user.save()
+        logger.info(f'Password reset for {profile.user.username} by {request.user}')
         messages.success(request, f'Password updated for {profile.user.get_full_name() or profile.user.username}.')
 
     return redirect('dashboard:staff_list')
@@ -165,6 +170,7 @@ def staff_delete(request, staff_id):
         return redirect('dashboard:staff_list')
 
     name = profile.user.get_full_name() or profile.user.username
+    logger.warning(f'Staff account deleted: {name} by {request.user}')
     profile.user.delete()  # Cascades to StaffProfile
     messages.success(request, f'Staff account for {name} has been deleted.')
     return redirect('dashboard:staff_list')

@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Sum, Count, Q, Max
@@ -132,6 +136,7 @@ def customer_block(request, email):
         defaults={'email': email, 'reason': reason}
     )
     if created:
+        logger.warning(f'Customer {email} blocked by {request.user}')
         messages.success(request, f'{email} has been blocked.')
     else:
         messages.info(request, f'{email} is already blocked.')
@@ -148,5 +153,6 @@ def customer_unblock(request, email):
 
     from .models import BlockedCustomer
     BlockedCustomer.objects.filter(email__iexact=email).delete()
+    logger.info(f'Customer {email} unblocked by {request.user}')
     messages.success(request, f'{email} has been unblocked.')
     return redirect('dashboard:customer_detail', email=email)
