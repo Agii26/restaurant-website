@@ -173,8 +173,9 @@ CLOUDINARY_STORAGE = {
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
-
+print("Cloudinary cloud name:", os.environ.get('CLOUDINARY_CLOUD_NAME'))
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 
 
 # -------------------------------------------------------------------
@@ -204,3 +205,4 @@ RESTAURANT_EMAIL = 'xhide26x@gmail.com'
 # -------------------------------------------------------------------
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
