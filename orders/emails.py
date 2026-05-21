@@ -98,8 +98,9 @@ Warm Vibe Bistro
             )
             msg.attach_alternative(html, 'text/html')
             msg.send(fail_silently=True)
-        except Exception:
-            pass  # Never crash the order flow due to email failure
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Email failed: {e}")
 
     thread = threading.Thread(target=_send)
     thread.daemon = True
