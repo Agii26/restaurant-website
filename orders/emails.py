@@ -1,7 +1,6 @@
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 import os
-import threading
 
 
 def _open_template(filename):
@@ -44,9 +43,8 @@ def _build_discount_row_html(order):
 
 
 def send_customer_confirmation(order):
-    """Send branded confirmation email to the customer — non-blocking."""
+    """Send branded confirmation email to the customer."""
 
-    # Pre-fetch all data before threading (querysets must be evaluated in main thread)
     order_number = str(order.order_number)[:8].upper()
     pickup_time = order.pickup_time.strftime('%B %d, %Y at %I:%M %p')
     order_items_html = _build_order_items_html(order)
@@ -88,29 +86,23 @@ Warm Vibe Bistro
     html = html.replace('{{ discount_row_html }}', discount_row_html)
     html = html.replace('{{ total }}', total)
 
-    def _send():
-        try:
-            msg = EmailMultiAlternatives(
-                subject=subject,
-                body=plain_text,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[customer_email],
-            )
-            msg.attach_alternative(html, 'text/html')
-            msg.send(fail_silently=True)
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).error(f"Email failed: {e}")
-
-    thread = threading.Thread(target=_send)
-    thread.daemon = True
-    thread.start()
+    try:
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=plain_text,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[customer_email],
+        )
+        msg.attach_alternative(html, 'text/html')
+        msg.send(fail_silently=False)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Customer confirmation email failed: {e}")
 
 
 def send_restaurant_notification(order):
-    """Send new order alert to the restaurant — non-blocking."""
+    """Send new order alert to the restaurant."""
 
-    # Pre-fetch all data before threading
     order_number = str(order.order_number)[:8].upper()
     pickup_time = order.pickup_time.strftime('%B %d, %Y at %I:%M %p')
     order_items_html = _build_order_items_html(order)
@@ -162,19 +154,15 @@ Payment: Confirmed via Stripe
     html = html.replace('{{ order_items_html }}', order_items_html)
     html = html.replace('{{ total }}', total)
 
-    def _send():
-        try:
-            msg = EmailMultiAlternatives(
-                subject=subject,
-                body=plain_text,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[settings.RESTAURANT_EMAIL],
-            )
-            msg.attach_alternative(html, 'text/html')
-            msg.send(fail_silently=True)
-        except Exception:
-            pass  # Never crash the order flow due to email failure
-
-    thread = threading.Thread(target=_send)
-    thread.daemon = True
-    thread.start()
+    try:
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=plain_text,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[settings.RESTAURANT_EMAIL],
+        )
+        msg.attach_alternative(html, 'text/html')
+        msg.send(fail_silently=False)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Restaurant notification email failed: {e}")
