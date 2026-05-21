@@ -108,17 +108,11 @@ def cart_view(request):
 
 
 
-@ratelimit(key='ip', rate='100/h', method='POST', block=False)
+
 def checkout_view(request):
     cart = Cart(request)
     if cart.is_empty():
         return redirect('orders:cart')
-
-    # ── Rate limit check ──
-    was_limited = getattr(request, 'limited', False)
-    if was_limited and request.method == 'POST':
-        messages.error(request, 'Too many attempts. Please wait a while before trying again.')
-        return redirect('orders:checkout')
 
     promo_code_obj = None
     promo_discount = Decimal('0')
