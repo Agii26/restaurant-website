@@ -108,7 +108,7 @@ def cart_view(request):
 
 
 
-@ratelimit(key='ip', rate='10/h', method='POST', block=False)
+@ratelimit(key='ip', rate='100/h', method='POST', block=False)
 def checkout_view(request):
     cart = Cart(request)
     if cart.is_empty():
