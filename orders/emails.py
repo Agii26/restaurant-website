@@ -94,7 +94,7 @@ Warm Vibe Bistro
             to=[customer_email],
         )
         msg.attach_alternative(html, 'text/html')
-        msg.send(fail_silently=False)
+        msg.send(fail_silently=True)
     except Exception as e:
         import logging
         logging.getLogger(__name__).error(f"Customer confirmation email failed: {e}")
@@ -162,7 +162,7 @@ Payment: Confirmed via Stripe
             to=[settings.RESTAURANT_EMAIL],
         )
         msg.attach_alternative(html, 'text/html')
-        msg.send(fail_silently=False)
+        msg.send(fail_silently=True)
     except Exception as e:
         import logging
         logging.getLogger(__name__).error(f"Restaurant notification email failed: {e}")

@@ -225,25 +225,31 @@ def payment_success(request):
     except Order.DoesNotExist:
         return redirect('orders:cart')
 
-    # Confirm the order
-    order.status = 'confirmed'
-    order.save()
+    # Only confirm + send email if webhook hasn't already done it
+    if order.status == 'pending':
+        order.status = 'confirmed'
+        order.save()
 
-    # Update promo usage
-    if order.promo_code:
-        order.promo_code.times_used += 1
-        order.promo_code.save()
-        if 'promo_code' in request.session:
-            del request.session['promo_code']
+        # Update promo usage
+        if order.promo_code:
+            order.promo_code.times_used += 1
+            order.promo_code.save()
+            if 'promo_code' in request.session:
+                del request.session['promo_code']
 
-    # Send both emails
-    send_customer_confirmation(order)
-    send_restaurant_notification(order)
+        # Send emails — never crash the page if this fails
+        try:
+            send_customer_confirmation(order)
+            send_restaurant_notification(order)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Email failed in payment_success: {e}")
 
     # Clear cart and session
     cart = Cart(request)
     cart.clear()
-    del request.session['pending_order_id']
+    if 'pending_order_id' in request.session:
+        del request.session['pending_order_id']
 
     # Set autofill cookies and redirect
     response = redirect('orders:order_confirmation', pk=order.pk)
@@ -290,13 +296,11 @@ def stripe_webhook(request):
                 if order.status == 'pending':
                     order.status = 'confirmed'
                     order.save()
-                    send_customer_confirmation(order)
-                    send_restaurant_notification(order)
+                    # No email here — payment_success handles that
             except Order.DoesNotExist:
                 pass
 
     return HttpResponse(status=200)
-
 
 def order_confirmation(request, pk):
     order = get_object_or_404(Order, pk=pk)
