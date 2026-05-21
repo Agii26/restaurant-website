@@ -225,7 +225,7 @@ def payment_success(request):
     except Order.DoesNotExist:
         return redirect('orders:cart')
 
-    # Only confirm + send email if webhook hasn't already done it
+    # Confirm if webhook hasn't already done it
     if order.status == 'pending':
         order.status = 'confirmed'
         order.save()
@@ -237,13 +237,13 @@ def payment_success(request):
             if 'promo_code' in request.session:
                 del request.session['promo_code']
 
-        # Send emails — never crash the page if this fails
-        try:
-            send_customer_confirmation(order)
-            send_restaurant_notification(order)
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).error(f"Email failed in payment_success: {e}", exc_info=True)
+    # Always send email — once, from this view
+    try:
+        send_customer_confirmation(order)
+        send_restaurant_notification(order)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Email failed in payment_success: {e}", exc_info=True)
 
     # Clear cart and session
     cart = Cart(request)
@@ -251,7 +251,6 @@ def payment_success(request):
     if 'pending_order_id' in request.session:
         del request.session['pending_order_id']
 
-    # Set autofill cookies and redirect
     response = redirect('orders:order_confirmation', pk=order.pk)
     response.set_cookie('guest_name', order.name, max_age=60*60*24*90)
     response.set_cookie('guest_email', order.email, max_age=60*60*24*90)
