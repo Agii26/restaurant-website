@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 
     # Third-party
     'django_ratelimit',
+    'anymail',
 ]
 
 
@@ -197,9 +198,10 @@ STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
 # -------------------------------------------------------------------
 # EMAIL
 # -------------------------------------------------------------------
-EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
-SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
+ANYMAIL = {
+    'SENDGRID_API_KEY': os.environ.get('SENDGRID_API_KEY'),
+}
 DEFAULT_FROM_EMAIL = 'Warm Vibe Bistro <xhide26x@gmail.com>'
 RESTAURANT_EMAIL = 'xhide26x@gmail.com'
 
