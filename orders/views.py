@@ -243,7 +243,7 @@ def payment_success(request):
             send_restaurant_notification(order)
         except Exception as e:
             import logging
-            logging.getLogger(__name__).error(f"Email failed in payment_success: {e}")
+            logging.getLogger(__name__).error(f"Email failed in payment_success: {e}", exc_info=True)
 
     # Clear cart and session
     cart = Cart(request)
