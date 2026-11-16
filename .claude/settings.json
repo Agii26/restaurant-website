@@ -1,0 +1,72 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py check)",
+      "Bash(python manage.py check *)",
+      "Bash(python manage.py test)",
+      "Bash(python manage.py test *)",
+      "Bash(python manage.py makemigrations --check *)",
+      "Bash(python manage.py showmigrations *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "PowerShell(python manage.py check *)",
+      "PowerShell(python manage.py test *)",
+      "PowerShell(git status *)",
+      "PowerShell(git diff *)"
+    ],
+    "ask": [
+      "Bash(python manage.py migrate)",
+      "Bash(python manage.py migrate *)",
+      "Bash(pip install *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Edit(./.claude/settings.json)",
+      "Edit(./.claude/hooks/**)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./.env.production)",
+      "Edit(./.env)",
+      "Edit(./.env.local)",
+      "Edit(./.env.production)",
+      "Bash(rm -rf *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard *)",
+      "Bash(python manage.py flush)",
+      "Bash(python manage.py flush *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|Write|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.py"],
+            "statusMessage": "Safety guard checking..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/syntax_check.py"],
+            "statusMessage": "Checking syntax..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -20,3 +20,6 @@ media/
 # OS
 .DS_Store
 Thumbs.db
+# Claude Code: personal files only (the rest of .claude/ IS committed)
+CLAUDE.local.md
+.claude/settings.local.json
