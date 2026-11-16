@@ -1,7 +1,8 @@
-import email
+import logging
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.db.models import Q
 from django.contrib import messages
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -15,7 +16,10 @@ from menu.models import MenuItem
 from .cart import Cart
 from .models import Order, OrderItem, PromoCode
 from .forms import CheckoutForm, AddToCartForm, PromoCodeForm
-from .emails import send_customer_confirmation, send_restaurant_notification
+from .services import confirm_order_paid, stripe_session_confirms_payment
+from restaurant_site.access import grant_access, has_access, remembered_ids
+
+logger = logging.getLogger(__name__)
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -150,6 +154,7 @@ def checkout_view(request):
             order.promo_code = promo_code_obj
             order.status = 'pending'
             order.save()
+            grant_access(request, 'order', order.pk)  # only this browser may reopen it
 
             for item in cart:
                 OrderItem.objects.create(
@@ -183,7 +188,8 @@ def checkout_view(request):
                     cancel_url=request.build_absolute_uri('/orders/payment/cancel/'),
                     metadata={'order_id': str(order.pk)},
                 )
-                return redirect(checkout_session.url, code=303)
+                request.session['pending_stripe_session_id'] = checkout_session.id
+                return HttpResponseRedirect(checkout_session.url, status=303)  # BUG-004: redirect() ignored code=
 
             except stripe.error.StripeError as e:
                 order.delete()
@@ -215,41 +221,42 @@ def checkout_view(request):
     })
 
 
+def _stripe_says_paid(request, order):
+    """Ask Stripe directly whether this browser's checkout session was paid."""
+    session_id = request.session.get('pending_stripe_session_id')
+    if not session_id:
+        return False
+    try:
+        stripe_session = stripe.checkout.Session.retrieve(session_id)
+    except stripe.error.StripeError:
+        logger.exception("Could not ask Stripe about session %s", session_id)
+        return False
+    return stripe_session_confirms_payment(stripe_session, order)
+
+
 def payment_success(request):
     order_id = request.session.get('pending_order_id')
     if not order_id:
         return redirect('orders:cart')
 
-    try:
-        order = Order.objects.get(pk=order_id)
-    except Order.DoesNotExist:
+    order = Order.objects.filter(pk=order_id).first()
+    if order is None:
         return redirect('orders:cart')
 
-    # Confirm if webhook hasn't already done it
     if order.status == 'pending':
-        order.status = 'confirmed'
-        order.save()
+        # BUG-001: reaching this URL proves nothing, so ask Stripe. If the webhook already
+        # confirmed the order the status is no longer 'pending' and we skip straight ahead.
+        if not _stripe_says_paid(request, order):
+            messages.warning(request, "We haven't received confirmation of your payment yet. "
+                                      "If your card was charged, your order will be confirmed "
+                                      "automatically within a minute. Otherwise please try again.")
+            return redirect('orders:cart')
+        confirm_order_paid(order.pk)  # safe even if the webhook is doing the same thing right now
 
-        # Update promo usage
-        if order.promo_code:
-            order.promo_code.times_used += 1
-            order.promo_code.save()
-            if 'promo_code' in request.session:
-                del request.session['promo_code']
-
-    # Always send email — once, from this view
-    try:
-        send_customer_confirmation(order)
-        send_restaurant_notification(order)
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).error(f"Email failed in payment_success: {e}", exc_info=True)
-
-    # Clear cart and session
-    cart = Cart(request)
-    cart.clear()
-    if 'pending_order_id' in request.session:
-        del request.session['pending_order_id']
+    # Payment is settled: clear the cart and the checkout bookkeeping.
+    Cart(request).clear()
+    for key in ('pending_order_id', 'pending_stripe_session_id', 'promo_code'):
+        request.session.pop(key, None)
 
     response = redirect('orders:order_confirmation', pk=order.pk)
     response.set_cookie('guest_name', order.name, max_age=60*60*24*90)
@@ -266,9 +273,14 @@ def payment_cancel(request):
         except Order.DoesNotExist:
             pass
         del request.session['pending_order_id']
+    request.session.pop('pending_stripe_session_id', None)
 
     messages.error(request, 'Payment was cancelled. Your cart has been kept — please try again.')
     return redirect('orders:checkout')
+
+
+# Stripe sends one of these when a card payment succeeds (or a delayed payment finally does).
+PAID_EVENT_TYPES = ('checkout.session.completed', 'checkout.session.async_payment_succeeded')
 
 
 @csrf_exempt
@@ -279,6 +291,7 @@ def stripe_webhook(request):
     webhook_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
 
     if not webhook_secret:
+        logger.warning('Stripe webhook called but STRIPE_WEBHOOK_SECRET is not set; ignoring it.')
         return HttpResponse(status=200)
 
     try:
@@ -286,45 +299,42 @@ def stripe_webhook(request):
     except (ValueError, stripe.error.SignatureVerificationError):
         return HttpResponse(status=400)
 
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        order_id = session.get('metadata', {}).get('order_id')
-        if order_id:
-            try:
-                order = Order.objects.get(pk=order_id)
-                if order.status == 'pending':
-                    order.status = 'confirmed'
-                    order.save()
-                    # No email here — payment_success handles that
-            except Order.DoesNotExist:
-                pass
+    if event['type'] in PAID_EVENT_TYPES:
+        stripe_session = event['data']['object']
+        order_id = (stripe_session.get('metadata') or {}).get('order_id')
+        order = Order.objects.filter(pk=order_id).first() if str(order_id).isdigit() else None
+        # Only confirm when Stripe says THIS order was paid in full. Unknown orders are ignored
+        # (still answer 200, otherwise Stripe keeps retrying a message we will never accept).
+        if order and stripe_session_confirms_payment(stripe_session, order):
+            confirm_order_paid(order.pk)
 
     return HttpResponse(status=200)
 
+
+def _can_view_order(request, order):
+    """BUG-002: only the browser that placed the order, or its signed-in owner."""
+    if has_access(request, 'order', order.pk):
+        return True
+    return request.user.is_authenticated and order.user_id == request.user.id
+
+
 def order_confirmation(request, pk):
     order = get_object_or_404(Order, pk=pk)
+    if not _can_view_order(request, order):
+        raise Http404  # 404, not 403: do not reveal that this order exists
     return render(request, 'orders/order_confirmation.html', {'order': order})
 
 
 def order_history(request):
-    orders = []
-    email_query = request.GET.get('email', '').strip()
-    looked_up = False
-
-    if email_query:
-        orders = Order.objects.filter(
-            email__iexact=email_query,
-            status__in=['confirmed', 'preparing', 'ready', 'completed']
-        ).prefetch_related('items').order_by('-id')
-        looked_up = True
-    elif request.user.is_authenticated:
-        orders = Order.objects.filter(user=request.user).prefetch_related('items').order_by('-id')
-
-    return render(request, 'orders/order_history.html', {
-        'orders': orders,
-        'email_query': email_query,
-        'looked_up': looked_up,
-    })
+    """Orders placed from this browser, plus the signed-in customer's own orders."""
+    mine = Q(pk__in=remembered_ids(request, 'order'))
+    if request.user.is_authenticated:
+        mine |= Q(user=request.user)
+    orders = (Order.objects
+              .filter(mine, status__in=['confirmed', 'preparing', 'ready', 'completed'])
+              .prefetch_related('items')
+              .order_by('-id'))
+    return render(request, 'orders/order_history.html', {'orders': orders})
 
 
 def cart_count(request):

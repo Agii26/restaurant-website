@@ -6,6 +6,9 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    # `python manage.py test` automatically uses the safe test settings.
+    if len(sys.argv) > 1 and sys.argv[1] == 'test':
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'restaurant_site.test_settings')
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'restaurant_site.settings')
     try:
         from django.core.management import execute_from_command_line

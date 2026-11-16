@@ -28,20 +28,9 @@
 
 <div class="container">
   <a href="{% url 'menu:menu' %}" class="back">← Back to Menu</a>
-  <!-- Email lookup form -->
-<div class="lookup-card">
-  <div class="section-label">Find Your Orders</div>
-  <p class="lookup-sub">Enter the email address you used when placing your order.</p>
-  <form method="GET" class="lookup-form">
-    <input
-      type="email"
-      name="email"
-      placeholder="your@email.com"
-      value="{{ email_query }}"
-      required
-    >
-    <button type="submit">Look Up →</button>
-  </form>
+  <div class="lookup-card">
+  <div class="section-label">Your Orders</div>
+  <p class="lookup-sub">Orders placed from this browser{% if user.is_authenticated %} and from your account{% endif %} appear here. If you ordered from another device, your confirmation email has all the details.</p>
 </div>
 
   {% if orders %}
