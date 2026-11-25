@@ -5,6 +5,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def env_bool(name, default=False):
+    """Read a True/False setting from the environment. 'True', 'true', '1' and 'yes' mean on."""
+    return os.environ.get(name, str(default)).strip().lower() in ('1', 'true', 'yes', 'on')
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -13,8 +19,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -------------------------------------------------------------------
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+# Off unless you turn it on. Forgetting the variable must leave the site SAFE, not exposed.
+# For local development put DEBUG=True in your .env file (see .env.example).
+DEBUG = env_bool('DEBUG', default=False)
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
+
+# HTTPS and cookie hardening for the live site. Local development (DEBUG=True) stays on plain http.
+if not DEBUG:
+    # Render ends HTTPS at its proxy and passes Django plain http plus this header. Without it,
+    # Django believes every request is insecure and the HTTPS redirect below would loop forever.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # HSTS tells browsers to use https only, and browsers remember it. Start small (1 hour) and
+    # raise it with the HSTS_SECONDS variable once you are sure everything works over https.
+    SECURE_HSTS_SECONDS = int(os.environ.get('HSTS_SECONDS', '3600'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+# We deliberately do NOT join the browser HSTS 'preload' list: it is very hard to undo, and it is meant
+# for domains you own (this site lives on a shared onrender.com address). Silence only that one warning.
+SILENCED_SYSTEM_CHECKS = ['security.W021']
 
 
 # -------------------------------------------------------------------
@@ -253,22 +278,22 @@ LOGGING = {
         # Project apps — full detail in debug, INFO in production
         'dashboard': {
             'handlers': ['console'],
-            'level': 'DEBUG' if os.environ.get('DEBUG', 'True') == 'True' else 'INFO',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
         'orders': {
             'handlers': ['console'],
-            'level': 'DEBUG' if os.environ.get('DEBUG', 'True') == 'True' else 'INFO',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
         'reservations': {
             'handlers': ['console'],
-            'level': 'DEBUG' if os.environ.get('DEBUG', 'True') == 'True' else 'INFO',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
         'menu': {
             'handlers': ['console'],
-            'level': 'DEBUG' if os.environ.get('DEBUG', 'True') == 'True' else 'INFO',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
 

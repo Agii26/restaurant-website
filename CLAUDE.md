@@ -12,7 +12,7 @@ Django 6 project (Python 3.12+). Customers browse the menu, order for pickup (pa
 
 ## Commands (project root, virtual environment active)
 - Setup (Windows PowerShell): `python -m venv venv`, then `venv\Scripts\Activate.ps1`, then `pip install -r requirements.txt`
-- Required env var: `SECRET_KEY` (no default; Django refuses to start without it). For local work also set `DEBUG=True`.
+- Required env var: `SECRET_KEY` (no default; Django refuses to start without it). `DEBUG` defaults to False (safe), so for local work put `DEBUG=True` in `.env`. All variables are listed in `.env.example`.
 - Optional env vars: `DATABASE_URL` (default sqlite), `REDIS_URL`, `STRIPE_*`, `SENDGRID_API_KEY`, `CLOUDINARY_*`
 - Run: `python manage.py migrate`, then `python manage.py runserver`
 - Check: `python manage.py check` and `python manage.py makemigrations --check --dry-run`
@@ -33,15 +33,17 @@ Django 6 project (Python 3.12+). Customers browse the menu, order for pickup (pa
 - No bare `except Exception`. Never show exception text to users.
 - Never edit an already-applied migration; create a new one.
 - Never read, print, or commit `.env` files. Use `.env.example` for placeholders.
+- Security settings live in `settings.py` under `if not DEBUG`. Never weaken them to make something work locally; tests have their own overrides in `test_settings.py`.
+- Staff login is rate limited per account (`@ratelimit` in `dashboard/views.py`). Redirect targets from user input must pass `url_has_allowed_host_and_scheme`.
 - Ask before adding a dependency.
 - Every bug fix starts with a failing test (use the test-writer agent), then the fix, then the whole suite.
 - Use plan mode before changing payments, login, roles, or settings.
 - Before saying "done": `python manage.py check` passes and the relevant tests pass. State what you ran and what you saw.
 
 ## Known issues (verified Nov 2026): do not copy these patterns
-Backlog: `docs/ROADMAP.md`. Bug reports: `docs/bugs/` (BUG-001 to BUG-004 are fixed).
-- `build.sh` runs `createsu`, which falls back to `admin` / `admin123` when env vars are unset.
+Backlog: `docs/ROADMAP.md`. Bug reports: `docs/bugs/` (BUG-001 to BUG-009 are fixed).
 - `django-anymail` warns that it dropped official SendGrid support.
+- Rate limiting needs the shared cache (`REDIS_URL`) in production. Django's own `/admin/` login has no lockout yet.
 
 ## Helpers
 - Subagents in `.claude/agents/`: code-reviewer, test-writer, security-reviewer

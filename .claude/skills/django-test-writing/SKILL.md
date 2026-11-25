@@ -78,4 +78,6 @@ class CheckoutTests(TestCase):
 - `payment_success` currently sends 2 emails; check `len(mail.outbox)`.
 - `manage.py test` uses `restaurant_site/test_settings.py` automatically (in-memory database, in-memory email, dummy Stripe keys), so a forgotten mock can never reach real Stripe.
 - Mock Stripe's `Session.retrieve` as `patch("orders.views.stripe.checkout.Session.retrieve", return_value={...})` and signed webhooks as `patch("orders.views.stripe.Webhook.construct_event", ...)`.
+- Login lockout counters live in the cache and survive between tests. Call `cache.clear()` in `setUp` of any test that logs in or hits a rate-limited view, or results will depend on test order. Check with `python manage.py test --reverse` and `--shuffle`.
+- Settings are read once at start-up, so settings tests run a fresh Python process (see `restaurant_site/tests/test_deploy_settings.py`) with `PYTHON_DOTENV_DISABLED=1` so a developer's own `.env` cannot change the result.
 - For a stranger, use a fresh `Client()`: customer pages must return 404 to anyone who did not create the record.

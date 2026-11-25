@@ -27,3 +27,9 @@ STRIPE_WEBHOOK_SECRET = "whsec_test_dummy_never_real"
 
 # Fast password hashing keeps tests quick.
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+# Production-only security switches would redirect every test request to https. Turn them off.
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_HSTS_SECONDS = 0

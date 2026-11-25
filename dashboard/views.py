@@ -1,4 +1,7 @@
 from django.shortcuts import render, redirect
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.http import url_has_allowed_host_and_scheme
+from django_ratelimit.decorators import ratelimit
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.utils import timezone
@@ -11,16 +14,28 @@ from orders.models import Order
 from reservations.models import Reservation
 
 
+def _login_attempt_key(group, request):
+    """Count login attempts per account name, ignoring capitals and stray spaces."""
+    return request.POST.get('username', '').strip().lower()
+
+
+@ratelimit(key=_login_attempt_key, rate='5/15m', method='POST', block=False)
 def staff_login(request):
     """Staff login page."""
     if request.user.is_authenticated:
         try:
             request.user.staff_profile
             return redirect('dashboard:home')
-        except Exception:
+        except ObjectDoesNotExist:
             pass
 
     if request.method == 'POST':
+        if getattr(request, 'limited', False):
+            # Refuse BEFORE checking the password, so a blocked guesser learns nothing.
+            messages.error(request, 'Too many login attempts for this account. '
+                                    'Please wait 15 minutes and try again.')
+            return render(request, 'dashboard/login.html', {'form': StaffLoginForm(request)}, status=429)
+
         form = StaffLoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
@@ -30,13 +45,18 @@ def staff_login(request):
                 if not profile.is_active:
                     messages.error(request, 'Your account has been deactivated. Contact the owner.')
                     return redirect('dashboard:login')
-            except Exception:
+            except ObjectDoesNotExist:
                 messages.error(request, 'You do not have staff access to this dashboard.')
                 return redirect('dashboard:login')
 
             login(request, user)
-            next_url = request.GET.get('next', 'dashboard:home')
-            return redirect(next_url)
+            # Only follow ?next= when it stays on THIS site. Otherwise a crafted link could send a
+            # freshly logged-in staff member to a look-alike phishing page.
+            next_url = request.GET.get('next', '')
+            if next_url and url_has_allowed_host_and_scheme(
+                    next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+                return redirect(next_url)
+            return redirect('dashboard:home')
         else:
             messages.error(request, 'Invalid username or password.')
     else:

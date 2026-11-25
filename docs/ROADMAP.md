@@ -6,19 +6,26 @@ Status labels: **Verified** = reproduced by running it. **Read** = seen in the c
 - [x] CLAUDE.md, permissions, 2 hooks, 3 subagents, 2 skills, 2 rules (see docs/AGENT_SETUP.md)
 
 ## Step 2: Safety-net tests, then Tier 1 fixes (security and money)
-Done so far (27 automated tests, all passing):
+Done (53 automated tests, all passing):
 - [x] Test settings so `manage.py test` runs (BUG-003)
 - [x] Unpaid order confirmed by visiting the success URL (BUG-001)
-- [x] Order, reservation and order-history pages readable by anyone (BUG-002), all three verified by running
+- [x] Order, reservation and order-history pages readable by anyone (BUG-002)
 - [x] Checkout redirect code ignored (BUG-004)
+- [x] Default `admin` / `admin123` account created on deploy (BUG-005)
+- [x] `DEBUG` on by default (BUG-006)
+- [x] HTTPS redirect, secure cookies, HSTS, Render proxy header (BUG-007)
+- [x] Open redirect and crash on staff login `next=` (BUG-008)
+- [x] Unlimited staff login guesses (BUG-009)
+
 Still to do in Step 2:
-- [ ] `createsu` falls back to admin / admin123; `DEBUG` defaults to True. Read.
-- [ ] HTTPS settings: `check --deploy` reports missing HSTS, SSL redirect, secure session and CSRF cookies, weak SECRET_KEY. Verified.
-- [ ] Open redirect on staff login `next=`; no rate limit on login, promo, or checkout. Read.
 - [ ] Customer name and notes pasted unescaped into emails to the restaurant. Read.
-- [ ] Refunds scan the whole Stripe history; no audit record of who refunded; float money. Read.
+- [ ] Refunds scan the whole Stripe history; no record of who refunded; float money. Read.
+- [ ] Limits for promo codes and checkout (needs the visitor's real IP behind Render's proxy; research first)
+- [ ] Django's own `/admin/` login has no lockout (consider moving it and limiting it)
+- [ ] Staff logout works via a plain link (GET); staff passwords skip Django's password checks. Read.
 
 ## Step 3: Tier 2 correctness fixes
+- [ ] Currency: use Philippine pesos everywhere (decided Nov 17; Stripe is told 'usd' today and `$` is hard-coded in many places). Verify Stripe's PHP support and minimum amount first.
 - [ ] Time zone: site is UTC, customers type local time. Read.
 - [ ] Reservation form's earliest date frozen at server start; no hours, capacity, or reservation emails. Read.
 - [ ] Promo code can exceed max uses under simultaneous orders. Read.
